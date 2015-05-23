@@ -2,3 +2,6 @@
 name = "rust-cc"
 version = "0.1.0"
 authors = ["Alexander Campbell <alexanderhcampbell@gmail.com>"]
+
+[dependencies]
+getopts = "0.2.11"
