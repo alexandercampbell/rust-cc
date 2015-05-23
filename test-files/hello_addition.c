@@ -5,12 +5,7 @@
  * expressions inside functions.
  */
 
-#include <stdio.h>
-
-// write_int will be a compiler builtin for us, but in standard C, we'd have to
-// use something like dprintf. This is just because I'm too lazy to implement
-// all of fprintf over again.
-#define write_int(file_descriptor, integer) dprintf(file_descriptor, "%d\n", integer)
+#include "rust-cc-builtins.h"
 
 // `int main()` will be our initially supported signature for main. In the
 // future we may add support for other signatures such as
