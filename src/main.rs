@@ -2,6 +2,10 @@
 use std::env;
 extern crate getopts;
 
+mod preprocessor;
+mod lexer;
+mod parser;
+
 #[allow(dead_code)] // This shouldn't be necessary, but otherwise `cargo test` complains.
 fn main() {
     let mut opts = getopts::Options::new();
