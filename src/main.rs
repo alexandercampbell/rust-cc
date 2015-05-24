@@ -1,10 +1,12 @@
 
 use std::env;
+use std::path::Path;
 extern crate getopts;
 
 mod preprocessor;
 mod lexer;
 mod parser;
+mod source;
 
 #[allow(dead_code)] // This shouldn't be necessary, but otherwise `cargo test` complains.
 fn main() {
@@ -21,5 +23,10 @@ fn main() {
 
     println!("reading from {:?}", input_filename);
     println!("writing to   {:?}", output_filename);
+
+    let path = Path::new(&input_filename);
+    let mut file = source::File::from_disk(path).unwrap();
+    preprocessor::preprocess(&mut file);
+    println!("preprocessed: {:?}", file.lines);
 }
 
