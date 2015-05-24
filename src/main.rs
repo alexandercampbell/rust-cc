@@ -12,7 +12,14 @@ fn main() {
     opts.optopt("o", "", "output binary location", "a.out");
 
     let matches = opts.parse(env::args().skip(1)).unwrap();
-    let output_file = matches.opt_str("o").unwrap_or("a.out".to_string());
-    println!("{:?}", output_file);
+    let output_filename = matches.opt_str("o").unwrap_or("a.out".to_string());
+
+    if matches.free.len() != 1 {
+        panic!("expected exactly one argument (the filename of a C program)")
+    }
+    let input_filename = matches.free[0].clone();
+
+    println!("reading from {:?}", input_filename);
+    println!("writing to   {:?}", output_filename);
 }
 
