@@ -1,9 +1,9 @@
 
 use source::File;
 
+/*
+ * Handle preprocessor directives such as "#".
+ */
 pub fn preprocess(file: &mut File) {
-    file.lines = file.lines.iter().filter(|&line| {
-        !line.starts_with("#")
-    }).cloned().collect();
 }
 

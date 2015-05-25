@@ -9,9 +9,8 @@ use std::error::Error;
  * operations on it.
  */
 pub struct File {
-    // yeah it's expensive memory-wise, but I'm lazy
-    pub lines: Vec<String>,
-    pub name:  String,
+    pub buf:  String,
+    pub name: String,
 }
 
 impl File {
@@ -26,15 +25,9 @@ impl File {
         // Handle block comments
         s = File::strip_block_comments(s);
 
-        // Split the source into lines and process each line separately.
-        let mut lines = vec![];
-        for line in s.split("\n") {
-            lines.push(line.to_string());
-        }
-
         Ok(File{
-            lines: lines,
-            // NOTE: this unwrap ignores unicode edge cases. Probably dangerous.
+            buf: s,
+            // NOTE: this `unwrap()` ignores unicode edge cases. Probably dangerous.
             name: (*location).to_str().unwrap().to_string(),
         })
     }

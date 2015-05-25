@@ -27,6 +27,6 @@ fn main() {
     let path = Path::new(&input_filename);
     let mut file = source::File::from_disk(path).unwrap();
     preprocessor::preprocess(&mut file);
-    println!("preprocessed: {:?}", file.lines);
+    println!("preprocessed: {:?}", file.buf);
 }
 
