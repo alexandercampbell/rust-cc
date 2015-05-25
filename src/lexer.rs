@@ -30,7 +30,7 @@ pub enum Token {
 /**
  * These have a direct correspondence to the C operators of the same name.
  *
- * TODO: Bitwise operators.
+ * TODO: Bitwise and comparison operators.
  */
 #[derive(Clone,Debug,PartialEq)]
 pub enum Operator {
@@ -88,10 +88,36 @@ pub enum Number {
 pub fn lex(s: &str) -> Result<Vec<Token>, &'static str> {
     let chars:Vec<char> = s.chars().collect();
     let mut pos = 0usize;
-    while pos < chars.len() {
-        pos += 1;
+    let mut tokens = vec![];
+
+    // use an anonymous scope here so `push_tok` is dropped before we `Ok(tokens)`. Why? Because
+    // for some reason, the drop keyword wasn't actually dropping `push_tok`.
+    {
+        let mut push_tok = |tok| {
+            // debug printing can be added here to easily record
+            //
+            // 1. what new tokens are pushed.
+            // 2. when they were pushed, relative to the other tokens.
+            //
+            tokens.push(tok);
+        };
+
+        while pos < chars.len() {
+            let ch = chars[pos];
+            match ch {
+                '{' => push_tok(Token::LBrace),
+                '}' => push_tok(Token::RBrace),
+                '(' => push_tok(Token::LParen),
+                ')' => push_tok(Token::RBrace),
+                ',' => push_tok(Token::Comma),
+                ';' => push_tok(Token::Semicolon),
+                _ => (),
+            }
+            pos += 1;
+        }
     }
-    Err("not implemented yet")
+
+    Ok(tokens)
 }
 
 #[cfg(test)]
