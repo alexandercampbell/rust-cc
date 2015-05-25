@@ -2,6 +2,7 @@
 /**
  * Each of the variants in this enum represents one kind of C token.
  */
+#[derive(Clone,Debug,PartialEq)]
 pub enum Token {
     /// String is a literal pulled directly from source, however, it will probably have some
     /// special processing done for escape sequences.
@@ -31,6 +32,7 @@ pub enum Token {
  *
  * TODO: Bitwise operators.
  */
+#[derive(Clone,Debug,PartialEq)]
 pub enum Operator {
     Add,        // +
     Subtract,   // -
@@ -39,17 +41,6 @@ pub enum Operator {
     And,        // &&
     Or,         // ||
     Assignment, // =
-}
-
-/**
- * Number describes the possible **literals** that can occur as a result of lexing.
- *
- * Presently, we don't try to support literals like "10L" or "10.0f".
- * TODO: Implement those.
- */
-pub enum Number {
-    Int(i64),
-    Float(f64),
 }
 
 impl Operator {
@@ -74,7 +65,19 @@ impl Operator {
 }
 
 /**
- * Convert from a str to a vector of Tokens.
+ * Number describes the possible **literals** that can occur as a result of lexing.
+ *
+ * Presently, we don't try to support literals like "10L" or "10.0f".
+ * TODO: Implement those.
+ */
+#[derive(Clone,Debug,PartialEq)]
+pub enum Number {
+    Int(i64),
+    Float(f64),
+}
+
+/**
+ * Convert from a str to a vector of Tokens. Handle comments correctly as part of lexing.
  *
  * For example, the string `", ( {"` would be transformed into the Vector of Tokens
  * `vec![Comma, LParen, LBrace]`.
@@ -83,6 +86,21 @@ impl Operator {
  * be parsed to build a walkable AST.
  */
 pub fn lex(s: &str) -> Result<Vec<Token>, &'static str> {
-    Err("not yet implemented")
+    let chars:Vec<char> = s.chars().collect();
+    let mut pos = 0usize;
+    while pos < chars.len() {
+        pos += 1;
+    }
+    Err("not implemented yet")
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn comma_lparen_lbrace() {
+        assert_eq!(lex(", ( {").unwrap(), vec![Token::Comma, Token::LParen, Token::LBrace]);
+    }
 }
 
