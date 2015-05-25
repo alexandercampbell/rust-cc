@@ -26,3 +26,24 @@ pub enum Operator {
     Assignment, // =
 }
 
+impl Operator {
+    /**
+     * Convert from the C literal of an operator to an Operator. If no such Operator exists, return
+     * None.
+     */
+    pub fn from_str(s: &str) -> Option<Operator> {
+        use lexer::Operator::*;
+
+        Some(match s {
+            "+" => Add,
+            "-" => Subtract,
+            "*" => Multiply,
+            "/" => Divide,
+            "&&" => And,
+            "||" => Or,
+            "=" => Assignment,
+            _ => return None,
+        })
+    }
+}
+
