@@ -27,6 +27,7 @@ pub enum Token {
      * The Tokens below this point should be self-explanatory :)
      */
     Comma,
+    Period,
     Semicolon,
     LParen, RParen,
     LBrace, RBrace,
@@ -105,7 +106,7 @@ fn peek_at_next_char(chars: &Vec<char>, pos: usize) -> Option<char> {
  * For example, if you have a string like this: " 12.3abc" and you start at `pos=2`, this function
  * will return `2.3` as a token and `pos` will be mutated to point to `a`.
  */
-fn lex_number(chars: &Vec<char>, pos: &mut usize) -> Result<Number, String> {
+fn lex_number(chars: &Vec<char>, pos: &mut usize) -> Result<Token, String> {
     let first_ch = chars[*pos];
     let mut seen_decimal = first_ch == '.';
     let mut literal = String::new();
@@ -143,17 +144,21 @@ fn lex_number(chars: &Vec<char>, pos: &mut usize) -> Result<Number, String> {
     // enum. Our variable `seen_decimal` tells us whether the number should be parsed as an int64
     // or a float64.
     if seen_decimal {
+        if literal == "." {
+            return Ok(Token::Period);
+        }
+
         let f = match literal.parse::<f64>() {
             Ok(f) => f,
             Err(_) => return Err(format!("bad floating point literal '{}'", literal)),
         };
-        Ok(Number::Float(f))
+        Ok(Token::Number(Number::Float(f)))
     } else {
         let i = match literal.parse::<i64>() {
             Ok(i) => i,
             Err(_) => return Err(format!("bad integer literal '{}'", literal)),
         };
-        Ok(Number::Int(i))
+        Ok(Token::Number(Number::Int(i)))
     }
 }
 
@@ -255,7 +260,7 @@ pub fn lex(s: &str) -> Result<Vec<Token>, String> {
             match ch {
                 '0'...'9'|'.' => {
                     let number = try!(lex_number(&chars, &mut pos));
-                    push_tok(Token::Number(number));
+                    push_tok(number);
                 },
                 'a'...'z'|'A'...'Z'|'_' => push_tok(Token::Identifier(lex_identifier(&chars, &mut pos))),
                 '"' => push_tok(Token::String(try!(lex_string(&chars, &mut pos)))),
