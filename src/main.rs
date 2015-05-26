@@ -3,6 +3,7 @@ use std::env;
 use std::path::Path;
 extern crate getopts;
 
+mod ast;
 mod lexer;
 mod parser;
 mod source;
