@@ -39,13 +39,13 @@ pub enum Token {
  */
 #[derive(Clone,Debug,PartialEq)]
 pub enum Operator {
-    Add,        // +
-    Subtract,   // -
-    Multiply,   // *
-    Divide,     // /
-    And,        // &&
-    Or,         // ||
-    Assignment, // =
+    Add,      // +
+    Subtract, // -
+    Multiply, // *
+    Divide,   // /
+    And,      // &&
+    Or,       // ||
+    Assign,   // =
 }
 
 impl Operator {
@@ -64,7 +64,7 @@ impl Operator {
             "/" => Divide,
             "&&" => And,
             "||" => Or,
-            "=" => Assignment,
+            "=" => Assign,
             _ => return None,
         })
     }
@@ -234,6 +234,13 @@ pub fn lex(s: &str) -> Result<Vec<Token>, String> {
                 ',' => push_tok(Token::Comma),
                 ';' => push_tok(Token::Semicolon),
                 ' '|'\n'|'\t' => (), // ignore whitespace
+
+                // TODO: more sophisticated operator lexing. Most of these can actually be
+                // two-character operators.
+                '+' => push_tok(Token::Operator(Operator::Add)),
+                '-' => push_tok(Token::Operator(Operator::Subtract)),
+                '*' => push_tok(Token::Operator(Operator::Multiply)),
+                '=' => push_tok(Token::Operator(Operator::Assign)),
 
                 // comments are handled in this block
                 '/' => {
