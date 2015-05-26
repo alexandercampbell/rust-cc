@@ -45,6 +45,7 @@ pub enum Operator {
     /// Asterisk can be either multiplication or dereference, depending on parse context.
     Asterisk, // *
     Divide,   // /
+    Modulo,   // %
     And,      // &&
     Or,       // ||
     Assign,   // =
@@ -277,6 +278,7 @@ pub fn lex(s: &str) -> Result<Vec<Token>, String> {
                 '-' => push_tok(Token::Operator(Operator::Subtract)),
                 '*' => push_tok(Token::Operator(Operator::Asterisk)),
                 '=' => push_tok(Token::Operator(Operator::Assign)),
+                '%' => push_tok(Token::Operator(Operator::Modulo)),
 
                 // comments are handled in this block
                 '/' => {
