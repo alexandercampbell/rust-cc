@@ -331,7 +331,7 @@ mod test {
     }
 
     #[test]
-    fn identifier() {
+    fn identifiers() {
         assert_eq!(lex("int ident1, _ident2;").unwrap(),
             vec![
                 Token::Identifier("int".to_string()),
@@ -341,6 +341,13 @@ mod test {
                 Token::Semicolon,
             ]
         );
+    }
+
+    #[test]
+    fn strings() {
+        assert_eq!(lex(r##""\n\\\"""##).unwrap(), vec![Token::String("\n\\\"".to_string())]);
+        assert!(lex("\"hello ").is_err());
+        assert!(lex("\"hello \\").is_err());
     }
 
     #[test]
