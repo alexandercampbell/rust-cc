@@ -5,20 +5,22 @@
 #[derive(Clone,Debug,PartialEq)]
 pub enum Token {
     /// String is a literal pulled directly from source, however, it will probably have some
-    /// special processing done for escape sequences.
+    /// special processing done for escape sequences. Example: `"hello"`
     String(String),
 
-    /// Character is a single-byte literal from the source code.
+    /// Character is a single-byte literal from the source code. Examples: `'c'` or `'\n'`
     Character(char),
 
-    /// Number is also a literal pulled directly from source.
+    /// Number is also a literal pulled directly from source. Examples: `98` or `3.14`
     Number(Number),
 
-    /// Identifier could be a function call or variable, or even type declaration.
+    /// Identifier could be a function call or variable, or even type declaration. Example: `main`
+    /// or `float`.
     Identifier(String),
 
     /// Operators have to be handled with correct precedence, but that's a problem for the parser.
-    /// The lexer is only concerned with defining which Operators exist.
+    /// The lexer is only concerned with defining which Operators exist. Operators are either one
+    /// or two characters.
     Operator(Operator),
 
     /*
@@ -51,7 +53,7 @@ impl Operator {
      * Convert from the C literal of an operator to an Operator. If no such Operator exists, return
      * None. For example, this function would convert from `"*"` to `Operator::Multiply`.
      */
-    #[allow(unused)] // useful for documentation if nothing else
+    #[allow(dead_code)] // useful for documentation if nothing else
     pub fn from_str(s: &str) -> Option<Operator> {
         use lexer::Operator::*;
 
