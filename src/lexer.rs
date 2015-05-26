@@ -314,11 +314,6 @@ mod test {
     use super::*;
 
     #[test]
-    fn comma_lparen_lbrace() {
-        assert_eq!(lex(", ( {").unwrap(), vec![Token::Comma, Token::LParen, Token::LBrace]);
-    }
-
-    #[test]
     fn unexpected_character() {
         assert!(lex("$").is_err());
         assert!(lex("@").is_err());
