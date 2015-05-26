@@ -3,7 +3,6 @@ use std::env;
 use std::path::Path;
 extern crate getopts;
 
-mod preprocessor;
 mod lexer;
 mod parser;
 mod source;
@@ -25,8 +24,8 @@ fn main() {
     println!("writing to   {:?}", output_filename);
 
     let path = Path::new(&input_filename);
-    let mut file = source::File::from_disk(path).unwrap();
-    preprocessor::preprocess(&mut file);
-    println!("preprocessed: {:?}", file.buf);
+    let file = source::File::from_disk(path).unwrap();
+    let tokens = lexer::lex(&file.buf).unwrap();
+    println!("lexed {} tokens", tokens.len());
 }
 
