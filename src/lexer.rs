@@ -342,5 +342,44 @@ mod test {
             ]
         );
     }
+
+    #[test]
+    fn simple_program() {
+        let simple_program =
+            r##"
+                int main(int argc, char *argv[]) {
+                    printf("Hello world\n");
+                    return 0;
+                }
+            "##;
+
+        let tokens = lex(simple_program).unwrap();
+        assert_eq!(tokens,
+            vec![
+                Token::Identifier("int".to_string()),
+                Token::Identifier("main".to_string()),
+                Token::LParen,
+                    Token::Identifier("int".to_string()),
+                    Token::Identifier("argc".to_string()),
+                    Token::Comma,
+                    Token::Identifier("char".to_string()),
+                    Token::Operator(Operator::Asterisk),
+                    Token::Identifier("argv".to_string()),
+                    Token::LSquareBracket,
+                    Token::RSquareBracket,
+                Token::RParen,
+                Token::LBrace,
+                    Token::Identifier("printf".to_string()),
+                    Token::LParen,
+                        Token::String("Hello world\n".to_string()),
+                    Token::RParen,
+                    Token::Semicolon,
+                    Token::Identifier("return".to_string()),
+                    Token::Number(Number::Int(0)),
+                    Token::Semicolon,
+                Token::RBrace,
+            ]
+        );
+    }
 }
 
