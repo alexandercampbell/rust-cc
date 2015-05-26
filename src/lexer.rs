@@ -8,7 +8,10 @@ pub enum Token {
     /// special processing done for escape sequences.
     String(String),
 
-    /// Number is a literal pulled directly from source.
+    /// Character is a single-byte literal from the source code.
+    Character(char),
+
+    /// Number is also a literal pulled directly from source.
     Number(Number),
 
     /// Identifier could be a function call or variable, or even type declaration.
@@ -46,7 +49,7 @@ pub enum Operator {
 impl Operator {
     /**
      * Convert from the C literal of an operator to an Operator. If no such Operator exists, return
-     * None.
+     * None. For example, this function would convert from `"*"` to `Operator::Multiply`.
      */
     pub fn from_str(s: &str) -> Option<Operator> {
         use lexer::Operator::*;
@@ -85,10 +88,11 @@ pub enum Number {
  * The result of this function is just a sequence of Token without hierarchy. These Tokens should
  * be parsed to build a walkable AST.
  */
-pub fn lex(s: &str) -> Result<Vec<Token>, &'static str> {
+pub fn lex(s: &str) -> Result<Vec<Token>, String> {
     let chars:Vec<char> = s.chars().collect();
     let mut pos = 0usize;
     let mut tokens = vec![];
+    let mut in_block_comment = false;
 
     // use an anonymous scope here so `push_tok` is dropped before we `Ok(tokens)`. Why? Because
     // for some reason, the drop keyword wasn't actually dropping `push_tok`.
