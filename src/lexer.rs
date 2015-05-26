@@ -30,6 +30,7 @@ pub enum Token {
     Semicolon,
     LParen, RParen,
     LBrace, RBrace,
+    LSquareBracket, RSquareBracket,
 }
 
 /**
@@ -188,6 +189,40 @@ fn lex_identifier(chars: &Vec<char>, pos: &mut usize) -> String {
 }
 
 /**
+ * Lex a string from `chars` starting at `pos`.
+ *
+ * NOTE: This function assumes that the first quote has been seen already.
+ */
+fn lex_string(chars: &Vec<char>, pos: &mut usize) -> Result<String, String> {
+    let mut literal = String::new();
+
+    loop {
+        *pos += 1;
+        if *pos >= chars.len() {
+            return Err(format!("unterminated string literal {:?}", literal));
+        }
+
+        let ch = chars[*pos];
+        match ch {
+            '"' => return Ok(literal),
+            '\\' => {
+                // the next character must be an escape sequence
+                match peek_at_next_char(chars, *pos) {
+                    Some('"') => literal.push('"'),
+                    Some('n') => literal.push('\n'),
+                    Some('r') => literal.push('\r'),
+                    Some('\\') => literal.push('\\'),
+                    None => return Err(format!("EOF while scanning string literal {:?}", literal)),
+                    Some(c) => return Err(format!("Unrecognized escape sequence \\{}", c)),
+                };
+                *pos += 1;
+            },
+            _ => literal.push(ch),
+        }
+    }
+}
+
+/**
  * Convert from a str to a vector of Tokens. Handle comments correctly as part of lexing.
  *
  * For example, the string `", ( {"` would be transformed into the Vector of Tokens
@@ -221,17 +256,17 @@ pub fn lex(s: &str) -> Result<Vec<Token>, String> {
                     let number = try!(lex_number(&chars, &mut pos));
                     push_tok(Token::Number(number));
                 },
-                'a'...'z'|'A'...'Z'|'_' => {
-                    push_tok(Token::Identifier(lex_identifier(&chars, &mut pos)));
-                },
-                '"' => (),                      // TODO: lex string
-                '\'' => (),                     // TODO: lex character
+                'a'...'z'|'A'...'Z'|'_' => push_tok(Token::Identifier(lex_identifier(&chars, &mut pos))),
+                '"' => push_tok(Token::String(try!(lex_string(&chars, &mut pos)))),
+                '\'' => (), // TODO: lex character
 
                 // single-character tokens
                 '{' => push_tok(Token::LBrace),
                 '}' => push_tok(Token::RBrace),
+                '[' => push_tok(Token::LSquareBracket),
+                ']' => push_tok(Token::RSquareBracket),
                 '(' => push_tok(Token::LParen),
-                ')' => push_tok(Token::RBrace),
+                ')' => push_tok(Token::RParen),
                 ',' => push_tok(Token::Comma),
                 ';' => push_tok(Token::Semicolon),
                 ' '|'\n'|'\t' => (), // ignore whitespace
