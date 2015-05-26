@@ -41,7 +41,8 @@ pub enum Token {
 pub enum Operator {
     Add,      // +
     Subtract, // -
-    Multiply, // *
+    /// Asterisk can be either multiplication or dereference, depending on parse context.
+    Asterisk, // *
     Divide,   // /
     And,      // &&
     Or,       // ||
@@ -51,7 +52,7 @@ pub enum Operator {
 impl Operator {
     /**
      * Convert from the C literal of an operator to an Operator. If no such Operator exists, return
-     * None. For example, this function would convert from `"*"` to `Operator::Multiply`.
+     * None. For example, this function would convert from `"*"` to `Operator::Asterisk`.
      */
     #[allow(dead_code)] // useful for documentation if nothing else
     pub fn from_str(s: &str) -> Option<Operator> {
@@ -60,7 +61,7 @@ impl Operator {
         Some(match s {
             "+" => Add,
             "-" => Subtract,
-            "*" => Multiply,
+            "*" => Asterisk,
             "/" => Divide,
             "&&" => And,
             "||" => Or,
@@ -239,7 +240,7 @@ pub fn lex(s: &str) -> Result<Vec<Token>, String> {
                 // two-character operators.
                 '+' => push_tok(Token::Operator(Operator::Add)),
                 '-' => push_tok(Token::Operator(Operator::Subtract)),
-                '*' => push_tok(Token::Operator(Operator::Multiply)),
+                '*' => push_tok(Token::Operator(Operator::Asterisk)),
                 '=' => push_tok(Token::Operator(Operator::Assign)),
 
                 // comments are handled in this block
