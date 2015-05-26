@@ -76,6 +76,7 @@ impl Operator {
  * Presently, we don't try to support literals like "10L" or "10.0f".
  * TODO: Implement those.
  */
+// NOTE: changes to this enum require changes to `lex_number()`
 #[derive(Clone,Debug,PartialEq)]
 pub enum Number {
     Int(i64),
@@ -91,6 +92,58 @@ fn peek_at_next_char(chars: &Vec<char>, pos: usize) -> Option<char> {
         None
     } else {
         Some(chars[next_pos])
+    }
+}
+
+fn lex_number(chars: &Vec<char>, pos: &mut usize) -> Result<Number, String> {
+    let first_ch = chars[*pos];
+    let mut seen_decimal = first_ch == '.';
+    let mut literal = String::new();
+    literal.push(first_ch);
+
+    loop {
+        *pos += 1;
+        if *pos >= chars.len() { break; }
+
+        let ch = chars[*pos];
+        match ch {
+            '0'...'9' => (),
+            '.' => {
+                // If `seen_decimal` is already true, that means we've already seen a '.' character
+                // in this literal.
+                if seen_decimal {
+                    return Err(format!("two decimals in numeric literal '{}.'", literal));
+                };
+                seen_decimal = true;
+            }
+
+            // TODO: handle trailing type specifiers like 10f and 50L (which mean float and long
+            // respectively).
+            _ => {
+                // `chars[pos]` is part of another token. Back up `pos` so we don't refer to that
+                // part of the string.
+                *pos -= 1;
+                break;
+            },
+        }
+        literal.push(ch);
+    };
+
+    // We now have the literal contained in `literal`. Parse it into an instance of the Number
+    // enum. Our variable `seen_decimal` tells us whether the number should be parsed as an int64
+    // or a float64.
+    if seen_decimal {
+        let f = match literal.parse::<f64>() {
+            Ok(f) => f,
+            Err(_) => return Err(format!("bad floating point literal '{}'", literal)),
+        };
+        Ok(Number::Float(f))
+    } else {
+        let i = match literal.parse::<i64>() {
+            Ok(i) => i,
+            Err(_) => return Err(format!("bad integer literal '{}'", literal)),
+        };
+        Ok(Number::Int(i))
     }
 }
 
@@ -124,10 +177,13 @@ pub fn lex(s: &str) -> Result<Vec<Token>, String> {
         while pos < chars.len() {
             let ch = chars[pos];
             match ch {
-                'a'...'z'|'A'...'Z'|'_' => (),  // lex ident
-                '0'...'9'|'.' => (),            // lex number
-                '"' => (),                      // lex string
-                '\'' => (),                     // lex character
+                '0'...'9'|'.' => {
+                    let number = try!(lex_number(&chars, &mut pos));
+                    push_tok(Token::Number(number));
+                },
+                'a'...'z'|'A'...'Z'|'_' => (),  // TODO: lex ident
+                '"' => (),                      // TODO: lex string
+                '\'' => (),                     // TODO: lex character
 
                 // single-character tokens
                 '{' => push_tok(Token::LBrace),
@@ -174,6 +230,20 @@ mod test {
     #[test]
     fn comma_lparen_lbrace() {
         assert_eq!(lex(", ( {").unwrap(), vec![Token::Comma, Token::LParen, Token::LBrace]);
+    }
+
+    #[test]
+    fn unexpected_character() {
+        assert!(lex("$").is_err());
+        assert!(lex("@").is_err());
+    }
+
+    #[test]
+    fn numbers() {
+        assert_eq!(lex("123").unwrap(), vec![Token::Number(Number::Int(123))]);
+        assert_eq!(lex("12.3").unwrap(), vec![Token::Number(Number::Float(12.3))]);
+        assert_eq!(lex("012").unwrap(), vec![Token::Number(Number::Int(12))]);
+        assert_eq!(lex("0120}").unwrap(), vec![Token::Number(Number::Int(120)), Token::RBrace]);
     }
 }
 
