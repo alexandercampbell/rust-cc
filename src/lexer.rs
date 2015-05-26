@@ -95,6 +95,13 @@ fn peek_at_next_char(chars: &Vec<char>, pos: usize) -> Option<char> {
     }
 }
 
+/**
+ * Extract as much of a number as possible from `chars`, starting at index `pos`. The `pos`
+ * parameter will be mutated to point to the first token of the next character after the number.
+ *
+ * For example, if you have a string like this: " 12.3abc" and you start at `pos=2`, this function
+ * will return `2.3` as a token and `pos` will be mutated to point to `a`.
+ */
 fn lex_number(chars: &Vec<char>, pos: &mut usize) -> Result<Number, String> {
     let first_ch = chars[*pos];
     let mut seen_decimal = first_ch == '.';
@@ -192,12 +199,13 @@ pub fn lex(s: &str) -> Result<Vec<Token>, String> {
                 ')' => push_tok(Token::RBrace),
                 ',' => push_tok(Token::Comma),
                 ';' => push_tok(Token::Semicolon),
+                ' '|'\n'|'\t' => (), // ignore whitespace
 
                 // comments are handled in this block
                 '/' => {
                     match peek_at_next_char(&chars, pos) {
                         Some('*') => {
-                            // comment until a `*/` symbol
+                            // TODO: handle comment until a `*/` symbol
                         },
 
                         Some('/') => {
@@ -212,7 +220,6 @@ pub fn lex(s: &str) -> Result<Vec<Token>, String> {
                         _ => push_tok(Token::Operator(Operator::Divide)),
                     }
                 },
-                ' '|'\n'|'\t' => (), // ignore whitespace
 
                 _ => return Err(format!("unexpected character '{}'", ch)),
             }
