@@ -10,7 +10,6 @@ use std::error::Error;
  */
 pub struct File {
     pub buf:  String,
-    pub name: String,
 }
 
 impl File {
@@ -27,8 +26,6 @@ impl File {
 
         Ok(File{
             buf: s,
-            // NOTE: this `unwrap()` ignores unicode edge cases. Probably dangerous.
-            name: (*location).to_str().unwrap().to_string(),
         })
     }
 
