@@ -102,16 +102,28 @@ pub fn lex(s: &str) -> Result<Vec<Token>, &'static str> {
             tokens.push(tok);
         };
 
+        // iterate through chars and process tokens as we go
         while pos < chars.len() {
             let ch = chars[pos];
             match ch {
+                'a'...'z'|'A'...'Z'|'_' => (),  // lex ident
+                '0'...'9'|'.' => (),            // lex number
+                '"' => (),                      // lex string
+                '\'' => (),                     // lex character
+
                 '{' => push_tok(Token::LBrace),
                 '}' => push_tok(Token::RBrace),
                 '(' => push_tok(Token::LParen),
                 ')' => push_tok(Token::RBrace),
                 ',' => push_tok(Token::Comma),
                 ';' => push_tok(Token::Semicolon),
-                _ => (),
+                '/' => {
+                    pos += 1;
+                    let next_ch = chars[pos];
+                },
+                ' '|'\n'|'\t' => (), // ignore whitespace
+
+                _ => return Err(format!("unexpected character '{}'", ch)),
             }
             pos += 1;
         }
