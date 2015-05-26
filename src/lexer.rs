@@ -51,6 +51,7 @@ impl Operator {
      * Convert from the C literal of an operator to an Operator. If no such Operator exists, return
      * None. For example, this function would convert from `"*"` to `Operator::Multiply`.
      */
+    #[allow(unused)] // useful for documentation if nothing else
     pub fn from_str(s: &str) -> Option<Operator> {
         use lexer::Operator::*;
 
@@ -80,6 +81,18 @@ pub enum Number {
 }
 
 /**
+ * Retrieve the next `char` after `pos` if possible.
+ */
+fn peek_at_next_char(chars: &Vec<char>, pos: usize) -> Option<char> {
+    let next_pos = pos + 1;
+    if next_pos >= chars.len() {
+        None
+    } else {
+        Some(chars[next_pos])
+    }
+}
+
+/**
  * Convert from a str to a vector of Tokens. Handle comments correctly as part of lexing.
  *
  * For example, the string `", ( {"` would be transformed into the Vector of Tokens
@@ -92,7 +105,6 @@ pub fn lex(s: &str) -> Result<Vec<Token>, String> {
     let chars:Vec<char> = s.chars().collect();
     let mut pos = 0usize;
     let mut tokens = vec![];
-    let mut in_block_comment = false;
 
     // use an anonymous scope here so `push_tok` is dropped before we `Ok(tokens)`. Why? Because
     // for some reason, the drop keyword wasn't actually dropping `push_tok`.
@@ -115,15 +127,32 @@ pub fn lex(s: &str) -> Result<Vec<Token>, String> {
                 '"' => (),                      // lex string
                 '\'' => (),                     // lex character
 
+                // single-character tokens
                 '{' => push_tok(Token::LBrace),
                 '}' => push_tok(Token::RBrace),
                 '(' => push_tok(Token::LParen),
                 ')' => push_tok(Token::RBrace),
                 ',' => push_tok(Token::Comma),
                 ';' => push_tok(Token::Semicolon),
+
+                // comments are handled in this block
                 '/' => {
-                    pos += 1;
-                    let next_ch = chars[pos];
+                    match peek_at_next_char(&chars, pos) {
+                        Some('*') => {
+                            // comment until a `*/` symbol
+                        },
+
+                        Some('/') => {
+                            // comment till the end of the line
+                            while {
+                                pos += 1;
+                                let ch = chars[pos];
+                                ch != '\n'
+                            }{};
+                        },
+
+                        _ => push_tok(Token::Operator(Operator::Divide)),
+                    }
                 },
                 ' '|'\n'|'\t' => (), // ignore whitespace
 
