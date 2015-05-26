@@ -155,6 +155,38 @@ fn lex_number(chars: &Vec<char>, pos: &mut usize) -> Result<Number, String> {
 }
 
 /**
+ * Lex as much of an identifer as possible from `chars`. Identifiers match the following regex:
+ *
+ * ```
+ * [A-Za-z_][A-Za-z0-9_]*
+ * ```
+ *
+ * This function assumes that the first character class has already been matched.
+ */
+fn lex_identifier(chars: &Vec<char>, pos: &mut usize) -> String {
+    let mut literal = String::new();
+    literal.push(chars[*pos]);
+
+    loop {
+        *pos += 1;
+        if *pos >= chars.len() { break; }
+
+        let ch = chars[*pos];
+        match ch {
+            'A'...'Z'|'a'...'z'|'0'...'9'|'_' => literal.push(ch),
+            _ => {
+                // `chars[pos]` is part of another token. Back up `pos` so we don't refer to that
+                // part of the string.
+                *pos -= 1;
+                break;
+            }
+        };
+    }
+
+    return literal;
+}
+
+/**
  * Convert from a str to a vector of Tokens. Handle comments correctly as part of lexing.
  *
  * For example, the string `", ( {"` would be transformed into the Vector of Tokens
@@ -188,7 +220,9 @@ pub fn lex(s: &str) -> Result<Vec<Token>, String> {
                     let number = try!(lex_number(&chars, &mut pos));
                     push_tok(Token::Number(number));
                 },
-                'a'...'z'|'A'...'Z'|'_' => (),  // TODO: lex ident
+                'a'...'z'|'A'...'Z'|'_' => {
+                    push_tok(Token::Identifier(lex_identifier(&chars, &mut pos)));
+                },
                 '"' => (),                      // TODO: lex string
                 '\'' => (),                     // TODO: lex character
 
@@ -251,6 +285,19 @@ mod test {
         assert_eq!(lex("12.3").unwrap(), vec![Token::Number(Number::Float(12.3))]);
         assert_eq!(lex("012").unwrap(), vec![Token::Number(Number::Int(12))]);
         assert_eq!(lex("0120}").unwrap(), vec![Token::Number(Number::Int(120)), Token::RBrace]);
+    }
+
+    #[test]
+    fn identifier() {
+        assert_eq!(lex("int ident1, _ident2;").unwrap(),
+            vec![
+                Token::Identifier("int".to_string()),
+                Token::Identifier("ident1".to_string()),
+                Token::Comma,
+                Token::Identifier("_ident2".to_string()),
+                Token::Semicolon,
+            ]
+        );
     }
 }
 
