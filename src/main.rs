@@ -28,5 +28,7 @@ fn main() {
     let file = source::File::from_disk(path).unwrap();
     let tokens = lexer::lex(&file.buf).unwrap();
     println!("lexed {} tokens", tokens.len());
+    let root_ast_node = parser::parse(tokens).unwrap();
+    println!("parsed a root node {:?}", root_ast_node);
 }
 
