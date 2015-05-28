@@ -40,7 +40,7 @@ impl Context {
         }
     }
 
-    pub fn peek(&mut self) -> Option<Token> {
+    pub fn peek(&self) -> Option<Token> {
         let next_pos = self.pos + 1;
         if next_pos >= self.tokens.len() {
             None
@@ -54,6 +54,9 @@ impl Context {
     }
 }
 
+/**
+ * Checkpoint records a position in a Context and is capable of restoring to that position.
+ */
 pub struct Checkpoint {
     saved_pos: usize,
 }
