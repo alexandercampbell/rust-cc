@@ -44,6 +44,7 @@ pub enum Expression {
     FunctionCall{name: String, args: Vec<Expression>},
     MemberAccess{struct_name: Box<Expression>, field_name: String},
     ArrayIndex{array: Box<Expression>, index: Box<Expression>},
+    Declaration(Declaration),
 }
 
 /**
@@ -51,7 +52,7 @@ pub enum Expression {
  * statements such as:
  *
  * ```
- * int **a[12] = { 0 };
+ * int **a[12];
  * ```
  *
  */
@@ -59,7 +60,6 @@ pub enum Expression {
 pub struct Declaration {
     pub _type:              Type,
     pub variable:           String,
-    pub initial_value:      Option<Expression>,
 }
 
 /**
@@ -83,6 +83,7 @@ pub enum Statement {
 #[derive(Clone,Debug,PartialEq)]
 pub struct Function {
     pub name:        String,
+    pub arguments:   Vec<Declaration>,
     pub return_type: Type,
     pub statements:  Vec<Statement>,
 }
