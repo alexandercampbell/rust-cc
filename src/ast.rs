@@ -59,7 +59,7 @@ pub enum Expression {
 pub struct Declaration {
     pub _type:              Type,
     pub variable:           String,
-    pub initial_value:      Expression,
+    pub initial_value:      Option<Expression>,
 }
 
 /**
