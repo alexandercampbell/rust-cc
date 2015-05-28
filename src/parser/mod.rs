@@ -1,6 +1,6 @@
 
 use lexer::Token;
-use ast::*;
+use ast;
 
 mod context;
 use self::context::Context;
@@ -11,7 +11,7 @@ mod build;
  * Parse a series of Tokens into a complete Program AST. No evaluation or optimization is done
  * during this phase.
  */
-pub fn parse(tokens: Vec<Token>) -> Result<Program, String> {
+pub fn parse(tokens: Vec<Token>) -> Result<ast::Program, String> {
     let mut context = context::Context::new(tokens);
     build::program(&mut context)
 }
@@ -48,7 +48,6 @@ mod test {
                         length:         None,
                         pointer_levels: 0,
                     },
-                    initial_value: None,
                 },
             ],
             functions: vec![],
@@ -72,7 +71,6 @@ mod test {
                         length:         None,
                         pointer_levels: 2,
                     },
-                    initial_value: None,
                 },
             ],
             functions: vec![],

@@ -33,12 +33,17 @@ impl Context {
 
     pub fn next(&mut self) -> Option<Token> {
         if self.pos >= self.tokens.len() {
+            self.pos += 1; // so step_back does exactly what we expect every time.
             None
         } else {
             let next_token = self.tokens[self.pos].clone();
             self.pos += 1;
             Some(next_token)
         }
+    }
+
+    pub fn step_back(&mut self) {
+        if self.pos > 0 { self.pos -= 1; }
     }
 
     pub fn peek(&self) -> Option<Token> {
