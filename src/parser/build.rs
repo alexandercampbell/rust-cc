@@ -3,6 +3,7 @@
  */
 
 use lexer::Token;
+use lexer::Operator;
 use ast::*;
 
 use super::context::Context;
@@ -51,10 +52,15 @@ fn declaration(context: &mut Context) -> Result<Declaration, String> {
 
     loop {
         match context.next() {
-            // Keep pushing identifiers until we hit something else.
+            // Keep pushing identifiers until we hit something else. This is the only match arm
+            // that will actually continue the loop.
             Some(Token::Identifier(ident)) => identifiers.push(ident),
 
             // This is a very simple case: a series of identifiers followed by a Semicolon.
+            // Example:
+            //
+            //      const unsigned long a;
+            //
             Some(Token::Semicolon) => {
                 if identifiers.len() < 2 {
                     return Err("expected at least two identifiers before semicolon".to_string());
@@ -62,11 +68,11 @@ fn declaration(context: &mut Context) -> Result<Declaration, String> {
 
                 // the following comments assume a declaration such as
                 //
-                // const unsigned int my_integer;
+                //      const unsigned int my_integer;
                 //
-                let variable = identifiers.pop().unwrap(); // my_integer
+                let variable = identifiers.pop().unwrap();  // my_integer
                 let base_name = identifiers.pop().unwrap(); // int
-                let modifiers = identifiers; // [const, unsigned]
+                let modifiers = identifiers;                // [const, unsigned]
 
                 return Ok(Declaration{
                     _type:          Type{
@@ -79,6 +85,54 @@ fn declaration(context: &mut Context) -> Result<Declaration, String> {
                     initial_value:  None,
                 });
             },
+
+            // This is a case where an asterisk interrupts the stream of tokens. This tells us some
+            // important information about the identifiers we just grabbed. Example:
+            //
+            //      const int *b;
+            //
+            // We can easily infer that the previous token (int) was the base type, the tokens
+            // before that were modifiers, and the token immediately afterward is the variable
+            // name. (The last part there is not always true, sometimes multiple asterisks are
+            // chained together as in.)
+            //
+            //      const int ***c;
+            //
+            Some(Token::Operator(Operator::Asterisk)) => {
+                let base_name = identifiers.pop().unwrap();
+                let modifiers = identifiers;
+                let mut pointer_levels = 1;
+                let variable: String;
+
+                loop {
+                    match context.next() {
+                        Some(Token::Operator(Operator::Asterisk)) => pointer_levels += 1,
+                        Some(Token::Identifier(string)) => {
+                            variable = string;
+                            break;
+                        }
+                        _ => return Err("expected variable name after asterisk in declaration".to_string()),
+                    }
+                }
+
+                // TODO: support for multiple comma-separated declarations and "=" characters.
+                match context.next() {
+                    Some(Token::Semicolon) => {
+                        return Ok(Declaration{
+                            _type: Type{
+                                base_name:      base_name,
+                                modifiers:      modifiers,
+                                length:         None,
+                                pointer_levels: pointer_levels,
+                            },
+                            variable:       variable,
+                            initial_value:  None,
+                        });
+                    },
+                    Some(token) => return Err(format!("unexpected token {:?} during parse of pointer declaration", token)),
+                    _ => return Err("incomplete declaration".to_string()),
+                };
+            }
 
             Some(token) => return Err(format!("unexpected token {:?} during parse of declaration", token)),
             _ => return Err("incomplete declaration".to_string()),

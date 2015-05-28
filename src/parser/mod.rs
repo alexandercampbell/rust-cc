@@ -37,8 +37,6 @@ mod test {
     #[test]
     fn constant_declaration() {
         let tokens = lex("const int a;").unwrap();
-        assert_eq!(tokens.len(), 4);
-
         let program = parse(tokens).unwrap();
         assert_eq!(program, Program{
             globals: vec![
@@ -49,6 +47,30 @@ mod test {
                         modifiers:      vec!["const".to_string()],
                         length:         None,
                         pointer_levels: 0,
+                    },
+                    initial_value: None,
+                },
+            ],
+            functions: vec![],
+        });
+    }
+
+    /**
+     * Test a pointer-pointer declaration.
+     */
+    #[test]
+    fn pointer_pointer() {
+        let tokens = lex("unsigned short **pointer;").unwrap();
+        let program = parse(tokens).unwrap();
+        assert_eq!(program, Program{
+            globals: vec![
+                Declaration{
+                    variable: "pointer".to_string(),
+                    _type: Type{
+                        base_name:      "short".to_string(),
+                        modifiers:      vec!["unsigned".to_string()],
+                        length:         None,
+                        pointer_levels: 2,
                     },
                     initial_value: None,
                 },
