@@ -18,7 +18,7 @@ use super::context::Context;
  * int f = *a * b;
  * ```
  *
- * Into Declaration structs. The rule for this parse looks like
+ * Into Declaration structs. The rule for this parse looks something like
  *
  * ```
  * ident+ (asterisk+ ident)? ((comma asterisk* ident)*|(equals <expression>)?)
@@ -37,12 +37,53 @@ fn declaration(context: &mut Context) -> Result<Declaration, String> {
     // 3. A comma. This means the last identifier was a variable name and another variable name is
     //    coming.
     // 4. An equals sign. This means an initial value expression is coming. Parse that and then the
-    //    semicolon afterward.
+    //    semicolon afterward. Note that the last identifier before the equals sign was the
+    //    variable name.
     //
 
-    //let mut identifiers = vec![];
-    let _ = context;
-    Err("unimplemented".to_string())
+    let mut identifiers: Vec<String> = vec![];
+
+    let first_token = context.next();
+    match first_token {
+        Some(Token::Identifier(ident)) => identifiers.push(ident),
+        _ => return Err("expected identifier at beginning of declaration".to_string()),
+    };
+
+    loop {
+        match context.next() {
+            // Keep pushing identifiers until we hit something else.
+            Some(Token::Identifier(ident)) => identifiers.push(ident),
+
+            // This is a very simple case: a series of identifiers followed by a Semicolon.
+            Some(Token::Semicolon) => {
+                if identifiers.len() < 2 {
+                    return Err("expected at least two identifiers before semicolon".to_string());
+                }
+
+                // the following comments assume a declaration such as
+                //
+                // const unsigned int my_integer;
+                //
+                let variable = identifiers.pop().unwrap(); // my_integer
+                let base_name = identifiers.pop().unwrap(); // int
+                let modifiers = identifiers; // [const, unsigned]
+
+                return Ok(Declaration{
+                    _type:          Type{
+                        base_name:      base_name,
+                        modifiers:      modifiers,
+                        length:         None,
+                        pointer_levels: 0,
+                    },
+                    variable:       variable,
+                    initial_value:  None,
+                });
+            },
+
+            Some(token) => return Err(format!("unexpected token {:?} during parse of declaration", token)),
+            _ => return Err("incomplete declaration".to_string()),
+        }
+    }
 }
 
 /**
@@ -83,7 +124,7 @@ pub fn program(context: &mut Context) -> Result<Program, String> {
                 checkpoint.restore(context);
 
                 // TODO
-                panic!("unimplemented")
+                return Err(declaration.unwrap_err());
             },
 
             Some(tok)   => return Err(format!("unexpected token {:?}", tok)),

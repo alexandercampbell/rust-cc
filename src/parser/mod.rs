@@ -37,8 +37,9 @@ mod test {
     #[test]
     fn constant_declaration() {
         let tokens = lex("const int a;").unwrap();
-        let program = parse(tokens).unwrap();
+        assert_eq!(tokens.len(), 4);
 
+        let program = parse(tokens).unwrap();
         assert_eq!(program, Program{
             globals: vec![
                 Declaration{
