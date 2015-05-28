@@ -90,3 +90,30 @@ pub fn parse(tokens: Vec<Token>) -> Result<Program, String> {
     Ok(root_ast_node)
 }
 
+#[cfg(test)]
+mod test {
+    use super::parse;
+    use ast::*;
+    use lexer::lex;
+
+    fn constant_declaration() {
+        let tokens = lex("const int a;").unwrap();
+        let program = parse(tokens).unwrap();
+        assert_eq!(program, Program{
+            globals:   vec![
+                Declaration{
+                    variable: "a".to_string(),
+                    _type: Type{
+                        base_name:      "int".to_string(),
+                        modifiers:      vec!["const".to_string()],
+                        length:         None,
+                        pointer_levels: 0,
+                    },
+                    initial_value: None,
+                },
+            ],
+            functions: vec![],
+        });
+    }
+}
+
