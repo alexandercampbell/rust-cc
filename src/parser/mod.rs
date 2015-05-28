@@ -22,6 +22,15 @@ mod test {
     use ast::*;
     use lexer::lex;
 
+    #[test]
+    fn empty_program() {
+        let program = parse(vec![]).unwrap();
+        assert_eq!(program, Program{
+            globals:    vec![],
+            functions:  vec![],
+        });
+    }
+
     /**
      * Test a very simple program that merely declares a constant integer.
      */
