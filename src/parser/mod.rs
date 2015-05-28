@@ -12,18 +12,8 @@ mod build;
  * during this phase.
  */
 pub fn parse(tokens: Vec<Token>) -> Result<Program, String> {
-    if tokens.len() == 0 {
-        return Err("parser: no tokens provided".to_string())
-    }
-
-    let mut pos = 0usize;
-    let tokens_len = tokens.len();
     let mut context = context::Context::new(tokens);
-    let root_ast_node = try!(build::program(&mut context));
-    if pos != tokens_len {
-        return Err("parser: continuation past end of input".to_string())
-    }
-    Ok(root_ast_node)
+    build::program(&mut context)
 }
 
 #[cfg(test)]
@@ -35,11 +25,13 @@ mod test {
     /**
      * Test a very simple program that merely declares a constant integer.
      */
+    #[test]
     fn constant_declaration() {
         let tokens = lex("const int a;").unwrap();
         let program = parse(tokens).unwrap();
+
         assert_eq!(program, Program{
-            globals:   vec![
+            globals: vec![
                 Declaration{
                     variable: "a".to_string(),
                     _type: Type{

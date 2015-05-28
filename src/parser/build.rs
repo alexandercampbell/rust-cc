@@ -41,6 +41,7 @@ fn declaration(context: &mut Context) -> Result<Declaration, String> {
     //
 
     //let mut identifiers = vec![];
+    let _ = context;
     Err("unimplemented".to_string())
 }
 
@@ -67,7 +68,7 @@ pub fn program(context: &mut Context) -> Result<Program, String> {
 
     loop {
         match context.peek() {
-            Some(Token::Identifier(id)) => {
+            Some(Token::Identifier(_)) => {
                 let checkpoint = context.make_checkpoint();
 
                 // first, try to parse it as a declaration
@@ -77,10 +78,12 @@ pub fn program(context: &mut Context) -> Result<Program, String> {
                     continue;
                 }
 
+                // if that fails, move back to the point where we tried to parse a declaration, and
+                // then try to parse a function definitions.
                 checkpoint.restore(context);
 
-                // second, try to parse it as a function
                 // TODO
+                panic!("unimplemented")
             },
 
             Some(tok)   => return Err(format!("unexpected token {:?}", tok)),
