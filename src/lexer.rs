@@ -59,7 +59,7 @@ impl Operator {
      */
     #[allow(dead_code)] // useful for documentation if nothing else
     pub fn from_str(s: &str) -> Option<Operator> {
-        use lexer::Operator::*;
+        use self::Operator::*;
 
         Some(match s {
             "+" => Add,
