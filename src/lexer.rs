@@ -1,6 +1,8 @@
 
 /**
  * Each of the variants in this enum represents one kind of C token.
+ *
+ * TODO: add positional information to these tokens if the memory tradeoff is worth it.
  */
 #[derive(Clone,Debug,PartialEq)]
 pub enum Token {

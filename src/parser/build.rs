@@ -92,9 +92,9 @@ fn declaration(context: &mut Context) -> Result<Declaration, String> {
             //      const int *b;
             //
             // We can easily infer that the previous token (int) was the base type, the tokens
-            // before that were modifiers, and the token immediately afterward is the variable
-            // name. (The last part there is not always true, sometimes multiple asterisks are
-            // chained together as in.)
+            // before that were modifiers, and the token immediately after the asterisk is the
+            // variable name. The last part there is not always true; sometimes multiple asterisks
+            // are chained together as in this declaration:
             //
             //      const int ***c;
             //
@@ -105,13 +105,16 @@ fn declaration(context: &mut Context) -> Result<Declaration, String> {
                 let variable: String;
 
                 loop {
+                    // In this loop, we're looking for either another asterisk or an identifier
+                    // (the variable name). This is only a loop because the number of asterisks can
+                    // vary freely.
                     match context.next() {
                         Some(Token::Operator(Operator::Asterisk)) => pointer_levels += 1,
                         Some(Token::Identifier(string)) => {
                             variable = string;
                             break;
                         }
-                        _ => return Err("expected variable name after asterisk in declaration".to_string()),
+                        _ => return Err("expected either variable name or asterisk after asterisk in declaration".to_string()),
                     }
                 }
 
@@ -130,7 +133,7 @@ fn declaration(context: &mut Context) -> Result<Declaration, String> {
                         });
                     },
                     Some(token) => return Err(format!("unexpected token {:?} during parse of pointer declaration", token)),
-                    _ => return Err("incomplete declaration".to_string()),
+                    _ => return Err("incomplete pointer declaration".to_string()),
                 };
             }
 
