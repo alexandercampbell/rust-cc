@@ -16,7 +16,7 @@ use super::context::Context;
  *
  * into the appropriate ast::Function structures.
  */
-fn function_definition(context: &mut Context) -> Result<Function, String> {
+fn function_definition(context: &mut Context, declaration: Declaration) -> Result<Function, String> {
     return Err("unimplemented".to_string());
 }
 
@@ -166,25 +166,33 @@ pub fn program(context: &mut Context) -> Result<Program, String> {
     loop {
         match context.peek() {
             Some(Token::Identifier(_)) => {
-                let checkpoint = context.make_checkpoint();
+                let declaration = try!(declaration(context));
 
-                // first, try to parse it as a declaration
-                let declaration = declaration(context);
-                if declaration.is_ok() {
-                    program.globals.push(declaration.unwrap());
+                match context.next() {
+                    // Global variable declaration without initialization.
+                    //
+                    //      int num_rows;
+                    //
+                    Some(Token::Semicolon) => {
+                        program.globals.push(declaration);
+                        continue;
+                    },
 
-                    match context.next() {
-                        Some(Token::Semicolon) => continue,
-                        _ => return Err("expected semicolon after global variable declaration".to_string()),
-                    }
+                    // TODO: handle Operator::Assign in this block for global variable
+                    // declarations like
+                    //
+                    //      const int NUM_ROWS = 100;
+                    //
+                    Some(Token::Operator(Operator::Assign)) => {},
+
+                    // Function definition
+                    Some(Token::LParen) => {
+                        let function = try!(function_definition(context, declaration));
+                        program.functions.push(function);
+                    },
+
+                    _ => return Err("expected semicolon after global variable declaration".to_string()),
                 }
-
-                // if that fails, move back to the point where we tried to parse a declaration, and
-                // then try to parse a function definitions.
-                checkpoint.restore(context);
-
-                // TODO
-                return Err(declaration.unwrap_err());
             },
 
             Some(tok)   => return Err(format!("unexpected token {:?}", tok)),

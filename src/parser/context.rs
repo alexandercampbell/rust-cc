@@ -54,6 +54,7 @@ impl Context {
         }
     }
 
+    #[allow(dead_code)]
     pub fn make_checkpoint(&mut self) -> Checkpoint {
         Checkpoint{saved_pos: self.pos}
     }
@@ -67,6 +68,7 @@ pub struct Checkpoint {
 }
 
 impl Checkpoint {
+    #[allow(dead_code)]
     pub fn restore(self, context: &mut Context) {
         context.pos = self.saved_pos;
     }
