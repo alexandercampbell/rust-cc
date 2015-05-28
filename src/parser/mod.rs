@@ -41,7 +41,7 @@ mod test {
         assert_eq!(program, Program{
             globals: vec![
                 Declaration{
-                    variable: "a".to_string(),
+                    name: "a".to_string(),
                     _type: Type{
                         base_name:      "int".to_string(),
                         modifiers:      vec!["const".to_string()],
@@ -64,7 +64,7 @@ mod test {
         assert_eq!(program, Program{
             globals: vec![
                 Declaration{
-                    variable: "pointer".to_string(),
+                    name: "pointer".to_string(),
                     _type: Type{
                         base_name:      "short".to_string(),
                         modifiers:      vec!["unsigned".to_string()],

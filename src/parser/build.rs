@@ -14,10 +14,26 @@ use super::context::Context;
  *      void say_hello() {}
  *      const int number_of_processes() { return 5; }
  *
- * into the appropriate ast::Function structures.
+ * into the appropriate ast::Function structures. NOTE: This function assumes that the type
+ * declaration has already been parsed, up to and including the left paren of the argument list.
  */
 fn function_definition(context: &mut Context, declaration: Declaration) -> Result<Function, String> {
-    return Err("unimplemented".to_string());
+    let mut arguments: Vec<Declaration> = vec![];
+    let mut statements: Vec<Statement> = vec![];
+
+    loop {
+        match context.peek() {
+            Some(Token::RParen) => {
+                return Ok(Function{
+                    name:           declaration.name,
+                    arguments:      arguments,
+                    return_type:    declaration._type,
+                    statements:     statements,
+                });
+            }
+            _ => (),
+        }
+    }
 }
 
 /**
@@ -77,7 +93,7 @@ fn declaration(context: &mut Context) -> Result<Declaration, String> {
                 let base_name = identifiers.pop().unwrap();
                 let modifiers = identifiers;
                 let mut pointer_levels = 1;
-                let variable: String;
+                let variable_name: String;
 
                 loop {
                     // In this loop, we're looking for either another asterisk or an identifier
@@ -86,7 +102,7 @@ fn declaration(context: &mut Context) -> Result<Declaration, String> {
                     match context.next() {
                         Some(Token::Operator(Operator::Asterisk)) => pointer_levels += 1,
                         Some(Token::Identifier(string)) => {
-                            variable = string;
+                            variable_name = string;
                             break;
                         }
                         _ => return Err("expected either variable name or asterisk after asterisk in declaration".to_string()),
@@ -102,7 +118,7 @@ fn declaration(context: &mut Context) -> Result<Declaration, String> {
                         pointer_levels: pointer_levels,
                         length:         None,
                     },
-                    variable: variable,
+                    name: variable_name,
                 });
             }
 
@@ -124,18 +140,18 @@ fn declaration(context: &mut Context) -> Result<Declaration, String> {
                 //
                 //      const unsigned int my_integer;
                 //
-                let variable = identifiers.pop().unwrap();  // my_integer
+                let name = identifiers.pop().unwrap();      // my_integer
                 let base_name = identifiers.pop().unwrap(); // int
                 let modifiers = identifiers;                // [const, unsigned]
 
                 return Ok(Declaration{
-                    _type:          Type{
+                    _type: Type{
                         base_name:      base_name,
                         modifiers:      modifiers,
                         length:         None,
                         pointer_levels: 0,
                     },
-                    variable:       variable,
+                    name: name,
                 });
             },
         }
