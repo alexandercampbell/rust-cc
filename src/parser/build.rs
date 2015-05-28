@@ -17,23 +17,36 @@ use super::context::Context;
  * into the appropriate ast::Function structures. NOTE: This function assumes that the type
  * declaration has already been parsed, up to and including the left paren of the argument list.
  */
-fn function_definition(context: &mut Context, declaration: Declaration) -> Result<Function, String> {
+fn function_definition(context: &mut Context, signature: Declaration) -> Result<Function, String> {
     let mut arguments: Vec<Declaration> = vec![];
     let mut statements: Vec<Statement> = vec![];
 
+    let first_arg = try!(declaration(context));
+    arguments.push(first_arg);
+
     loop {
-        match context.peek() {
+        match context.next() {
             Some(Token::RParen) => {
-                return Ok(Function{
-                    name:           declaration.name,
-                    arguments:      arguments,
-                    return_type:    declaration._type,
-                    statements:     statements,
-                });
-            }
-            _ => (),
+                // All finished parsing arguments list!
+                break;
+            },
+            Some(Token::Comma) => {
+                let arg = try!(declaration(context));
+                arguments.push(arg);
+            },
+            Some(tok) => return Err(format!("unexpected token {:?} while parsing function argument list", tok)),
+            None => {
+                return Err("unexpected EOF when parsing function argument list".to_string());
+            },
         }
     }
+
+    return Ok(Function{
+        name:           signature.name,
+        arguments:      arguments,
+        return_type:    signature._type,
+        statements:     statements,
+    });
 }
 
 /**
