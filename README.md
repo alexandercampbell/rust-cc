@@ -1,9 +1,8 @@
 
-
 rust-cc
 -------
 
-rust-cc is a C compiler written in Rust.
+rust-cc will be a C compiler written in Rust.
 
 Planned:
 
@@ -20,6 +19,12 @@ Not planned:
 
 rust-cc is a cross between learning project and proof of concept. Do not use
 this program for C development.
+
+
+why did you make this?
+----------------------
+
+Because I wanted to write a C compiler before dying.
 
 
 maintainer
