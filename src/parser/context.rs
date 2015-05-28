@@ -15,6 +15,9 @@ use lexer::Token;
  * pattern-matching fails. These "set points" are called Checkpoints. It's kinda dumb but at least
  * it's easy to understand and it works.
  */
+// intentionally non-clonable; it would be confusing as hell to have multiple contexts floating
+// around on the same vector of tokens
+#[derive(Debug)]
 pub struct Context {
     tokens:             Vec<Token>,
     pos:                usize,
@@ -29,23 +32,20 @@ impl Context {
     }
 
     pub fn next(&mut self) -> Option<Token> {
-        self.pos += 1;
         if self.pos >= self.tokens.len() {
-            // prevent multiple calls to next() at the end of a token stream from advancing us
-            // beyond self.tokens.len();
-            self.pos = self.tokens.len();
             None
         } else {
-            Some(self.tokens[self.pos].clone())
+            let next_token = self.tokens[self.pos].clone();
+            self.pos += 1;
+            Some(next_token)
         }
     }
 
     pub fn peek(&self) -> Option<Token> {
-        let next_pos = self.pos + 1;
-        if next_pos >= self.tokens.len() {
+        if self.pos >= self.tokens.len() {
             None
         } else {
-            Some(self.tokens[next_pos].clone())
+            Some(self.tokens[self.pos].clone())
         }
     }
 
