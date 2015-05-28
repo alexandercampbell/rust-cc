@@ -76,5 +76,81 @@ mod test {
             functions: vec![],
         });
     }
+
+    fn void_function() {
+        let tokens = lex(r##"
+                         void hello() {}
+                         "##).unwrap();
+
+        let program = parse(tokens).unwrap();
+
+        assert_eq!(program, Program{
+            globals: vec![],
+            functions: vec![
+                Function{
+                    name: "hello".to_string(),
+                    return_type: Type{
+                        base_name:      "void".to_string(),
+                        modifiers:      vec![],
+                        length:         None,
+                        pointer_levels: 0,
+                    },
+                    arguments: vec![],
+                    statements: vec![],
+                },
+            ],
+        });
+    }
+
+    /**
+     * Test a simple function definition
+     */
+    #[test]
+    fn function_definition() {
+        let tokens = lex(r##"
+                         inline const void get_num_cores(int *a) {
+                            int b;
+                         }
+                         "##).unwrap();
+
+        let program = parse(tokens).unwrap();
+
+        assert_eq!(program, Program{
+            globals: vec![],
+            functions: vec![
+                Function{
+                    name: "get_num_cores".to_string(),
+                    return_type: Type{
+                        base_name:      "void".to_string(),
+                        modifiers:      vec!["inline".to_string(), "const".to_string()],
+                        length:         None,
+                        pointer_levels: 0,
+                    },
+                    arguments: vec![
+                        Declaration{
+                            name: "a".to_string(),
+                            _type: Type{
+                                base_name:      "int".to_string(),
+                                modifiers:      vec![],
+                                length:         None,
+                                pointer_levels: 1,
+                            }
+                        },
+                    ],
+                    statements: vec![
+                        Statement::Declaration(Declaration{
+                            name: "b".to_string(),
+                            _type: Type{
+                                base_name:      "int".to_string(),
+                                modifiers:      vec![],
+                                length:         None,
+                                pointer_levels: 0,
+                            },
+                        }),
+                    ],
+                },
+            ],
+        });
+    }
 }
 
