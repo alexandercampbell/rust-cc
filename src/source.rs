@@ -4,7 +4,7 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::error::Error;
 
-/*
+/**
  * File is our initial datastructure. We load the source code into this structure and then do
  * operations on it.
  */
@@ -13,7 +13,7 @@ pub struct File {
 }
 
 impl File {
-    /*
+    /**
      * Load a File from the location you specify.
      */
     pub fn from_disk(location: &Path) -> Result<Self, Box<Error>> {
@@ -21,7 +21,12 @@ impl File {
         let mut s = String::new();
         try!(f.read_to_string(&mut s));
 
-        // Handle block comments
+        // Handle block comments.
+        //
+        // TODO: Move block comment support into the lexer. It doesn't make sense for a File to
+        // handle block comments (a File should be agnostic about its contents), and pretrimming
+        // the block comments will throw off line numbers.
+        //
         s = File::strip_block_comments(s);
 
         Ok(File{
@@ -29,7 +34,7 @@ impl File {
         })
     }
 
-    /*
+    /**
      * Remove all comments from the string that are of the form `/* some comment */`. These may
      * span multiple newlines. Nested block comments are not supported (in the traditional C
      * style).
