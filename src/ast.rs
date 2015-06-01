@@ -52,14 +52,14 @@ pub enum Expression {
  * statements such as:
  *
  * ```
- * int **a[12];
+ * int **a[12]
  * ```
  *
  */
 #[derive(Clone,Debug,PartialEq)]
 pub struct Declaration {
-    pub _type:              Type,
-    pub variable:           String,
+    pub _type:  Type,
+    pub name:   String,
 }
 
 /**
@@ -85,10 +85,10 @@ pub enum Statement {
 
 #[derive(Clone,Debug,PartialEq)]
 pub struct Function {
-    pub name:        String,
-    pub arguments:   Vec<Declaration>,
-    pub return_type: Type,
-    pub statements:  Vec<Statement>,
+    pub name:           String,
+    pub arguments:      Vec<Declaration>,
+    pub return_type:    Type,
+    pub statements:     Vec<Statement>,
 }
 
 #[derive(Clone,Debug,PartialEq)]
