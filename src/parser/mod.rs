@@ -77,6 +77,7 @@ mod test {
         });
     }
 
+    #[test]
     fn void_function() {
         let tokens = lex(r##"
                          void hello() {}
@@ -103,7 +104,7 @@ mod test {
     }
 
     /**
-     * Test a simple function definition
+     * Test a simple function definition with a single statement inside.
      */
     #[test]
     fn function_definition() {

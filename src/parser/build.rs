@@ -9,6 +9,14 @@ use ast::*;
 use super::context::Context;
 
 /**
+ * Parse a block of statements. This may be either a single statement or a series of statements
+ * enclosed in curly braces `{}`.
+ */
+fn statement_block(context: &mut Context) -> Result<Vec<Statement>, String> {
+    Ok(vec![])
+}
+
+/**
  * Parse function definitions such as
  *
  *      void say_hello() {}
@@ -18,35 +26,51 @@ use super::context::Context;
  * declaration has already been parsed, up to and including the left paren of the argument list.
  */
 fn function_definition(context: &mut Context, signature: Declaration) -> Result<Function, String> {
+    /*
+     * Argument parsing
+     */
     let mut arguments: Vec<Declaration> = vec![];
-    let mut statements: Vec<Statement> = vec![];
 
-    let first_arg = try!(declaration(context));
-    arguments.push(first_arg);
+    match context.peek() {
+        Some(Token::RParen) => {
+            // A RParen immediately means the arguments list is empty; the function signature looks
+            // like this (no arguments):
+            //
+            //      int my_function()
+            //
 
-    loop {
-        match context.next() {
-            Some(Token::RParen) => {
-                // All finished parsing arguments list!
-                break;
-            },
-            Some(Token::Comma) => {
-                let arg = try!(declaration(context));
-                arguments.push(arg);
-            },
-            Some(tok) => return Err(format!("unexpected token {:?} while parsing function argument list", tok)),
-            None => {
-                return Err("unexpected EOF when parsing function argument list".to_string());
-            },
-        }
+            context.next(); // Consume the Token::RParen
+        },
+
+        _ => {
+            // Parse arguments (in this branch, we know there is at least one argument ready to be
+            // parsed).
+            let first_arg = try!(declaration(context));
+            arguments.push(first_arg);
+
+            loop {
+                match context.next() {
+                    Some(Token::RParen) => break,
+                    Some(Token::Comma)  => arguments.push(try!(declaration(context))),
+
+                    Some(tok) => return Err(format!("unexpected token {:?} while parsing function argument list", tok)),
+                    None      => return Err("unexpected EOF when parsing function argument list".to_string()),
+                }
+            }
+        },
     }
 
-    return Ok(Function{
+    /*
+     * Body parsing
+     */
+    let statements = try!(statement_block(context));
+
+    Ok(Function{
         name:           signature.name,
         arguments:      arguments,
         return_type:    signature._type,
         statements:     statements,
-    });
+    })
 }
 
 /**
