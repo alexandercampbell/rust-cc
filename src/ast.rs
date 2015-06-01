@@ -78,6 +78,9 @@ pub struct Type {
 pub enum Statement {
     Declaration(Declaration),
     Expression(Expression),
+    Return(Expression),
+    Continue,
+    Break,
 }
 
 #[derive(Clone,Debug,PartialEq)]
