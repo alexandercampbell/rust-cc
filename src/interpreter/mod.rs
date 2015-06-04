@@ -16,3 +16,11 @@
  * 3. More portable because we're not emitting any platform-specific assembly.
  *
  */
+
+use ast;
+
+pub fn run_program(program: &ast::Program) -> Result<(), String> {
+    let _ = program;
+    Ok(())
+}
+

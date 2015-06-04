@@ -18,6 +18,9 @@ fn main() {
     let matches = opts.parse(env::args().skip(1)).unwrap();
     let output_filename = matches.opt_str("o").unwrap_or("a.out".to_string());
 
+    // We're not emitting any machine code yet, so no output file is being created.
+    let _ = output_filename;
+
     if matches.free.len() != 1 {
         panic!("expected exactly one argument (the filename of a C program)")
     }
@@ -28,5 +31,6 @@ fn main() {
     let tokens = lexer::lex(&file.buf).unwrap();
     let root_ast_node = parser::parse(tokens).unwrap();
     println!("parsed an AST {:?}", root_ast_node);
+    interpreter::run_program(&root_ast_node).unwrap();
 }
 
