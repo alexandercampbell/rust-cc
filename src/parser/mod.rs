@@ -134,6 +134,30 @@ mod test {
     }
 
     #[test]
+    fn empty_function_call() {
+        let expr = parse_expr_str("hello()").unwrap();
+        assert_eq!(expr, Expression::FunctionCall{
+            name: "hello".to_string(),
+            args: vec![],
+        });
+    }
+
+    #[test]
+    fn function_call_with_parameters() {
+        let expr = parse_expr_str(r##"concatenate_these_strings("alpha", "beta", "charlie", "delta")"##).unwrap();
+        assert_eq!(expr, Expression::FunctionCall{
+            name: "concatenate_these_strings".to_string(),
+            args: vec![
+                Expression::String("alpha".to_string()),
+                Expression::String("beta".to_string()),
+                Expression::String("charlie".to_string()),
+                Expression::String("delta".to_string()),
+            ],
+        });
+    }
+
+
+    #[test]
     fn operator_precedence() {
         let expr = parse_expr_str("1 - 2 * 3 + 4").unwrap();
 

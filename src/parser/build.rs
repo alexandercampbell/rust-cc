@@ -12,15 +12,60 @@ use super::context::Context;
  * This function is named "atom" because I can't remember what the fundamental AST nodes are
  * called. Terminals, maybe?
  *
- * Either way, this function returns one of the fundamental units of the AST. No subcalls are made
- * in this function.
+ * Either way, this function returns one of the fundamental units of the AST (sometimes). The
+ * exception to this rule is function calls, which obviously can contain full expressions as
+ * arguments.
  */
 fn atom(context: &mut Context) -> Result<Expression, String> {
     match context.next() {
         Some(Token::String(s)) => Ok(Expression::String(s)),
         Some(Token::Character(ch)) => Ok(Expression::Character(ch)),
         Some(Token::Number(n)) => Ok(Expression::Number(n)),
-        Some(Token::Identifier(id)) => Ok(Expression::Variable(id)),
+        Some(Token::Identifier(id)) => {
+            match context.peek() {
+                Some(Token::LParen) => {
+                    /*
+                     * Function call on the identifier.
+                     */
+                    context.next(); // consume the opening LParen
+
+                    let function_name = id;
+                    let mut arguments: Vec<Expression> = vec![];
+
+                    match context.peek() {
+                        Some(Token::RParen) => {
+                            // no arguments to function call
+                            context.next(); // consume the Token::RParen
+                            Ok(Expression::FunctionCall{name: function_name, args: vec![]})
+                        }
+
+                        _ => {
+                            let first_arg = try!(expression(context));
+                            arguments.push(first_arg);
+
+                            loop {
+                                match context.next() {
+                                    Some(Token::RParen) => break,
+                                    Some(Token::Comma) => arguments.push(try!(expression(context))),
+
+                                    Some(tok) => return Err(format!(
+                                            "unexpected token {:?} while parsing arguments to function {:?}",
+                                            tok, function_name)),
+
+                                    None => return Err(format!(
+                                            "unexpected EOF while parsing arguments to function {:?}",
+                                            function_name)),
+                                }
+                            }
+
+                            Ok(Expression::FunctionCall{name: function_name, args: arguments})
+                        }
+                    }
+                },
+
+                _ => Ok(Expression::Variable(id))
+            }
+        }
         Some(token) => Err(format!("expected atom token, got {:?}", token)),
         None => Err("expected atom token".to_string()),
     }
