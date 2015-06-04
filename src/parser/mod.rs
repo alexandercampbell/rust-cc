@@ -129,6 +129,27 @@ mod test {
         });
     }
 
+    #[test]
+    fn operator_precedence() {
+        let expr = parse_expr_str("1 - 2 * 3 + 4").unwrap();
+
+        assert_eq!(expr,
+            Expression::BinaryOp(
+                box Expression::Number(Number::Int(1)),
+                BinaryOp::Subtract,
+                box Expression::BinaryOp(
+                    box Expression::BinaryOp(
+                        box Expression::Number(Number::Int(2)),
+                        BinaryOp::Multiply,
+                        box Expression::Number(Number::Int(3)),
+                    ),
+                    BinaryOp::Add,
+                    box Expression::Number(Number::Int(4)),
+                ),
+            )
+        );
+    }
+
     /**
      * Test a simple function definition with a single statement inside.
      */

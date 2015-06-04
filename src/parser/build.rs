@@ -52,11 +52,84 @@ fn unary_op(context: &mut Context) -> Result<Expression, String> {
 }
 
 /**
+ * Convert from a lexer operator to a parser BinaryOp.
+ *
+ * This function is not possible for a generic case because the lexer operators have different
+ * meanings depending on the context. For example, `*` can mean either "dereference" or "multiply".
+ * However, this function is unambiguous because it only converts to a BinaryOp.
+ */
+fn lexer_op_to_parser_op(lexer_op: Operator) -> Option<BinaryOp> {
+    Some(match lexer_op {
+        Operator::Asterisk => BinaryOp::Multiply,
+        Operator::Add => BinaryOp::Add,
+        Operator::Subtract => BinaryOp::Subtract,
+        Operator::Divide => BinaryOp::Divide,
+        Operator::Modulo => BinaryOp::Modulo,
+        Operator::And => BinaryOp::And,
+        Operator::Or => BinaryOp::Or,
+        Operator::Assign => BinaryOp::Assign,
+        _ => return None,
+    })
+}
+
+/**
+ * Construct an operator node with the only operators allowed coming from `allowed_operators`.
+ * `build_subtree` refers to the next-looser precedence level.
+ */
+fn binary_operator_helper(
+    context: &mut Context,
+    allowed_operators: &'static [BinaryOp],
+    build_subtree: fn(&mut Context) -> Result<Expression, String>
+) -> Result<Expression, String> {
+
+    let lhs_node = try!(build_subtree(context));
+    let operator;
+
+    // Look for an operator token, if one exists.
+    match context.peek() {
+        None => return Ok(lhs_node),
+        Some(Token::Operator(tok)) => {
+            let parser_op = lexer_op_to_parser_op(tok);
+            match parser_op {
+                Some(ref o) if allowed_operators.contains(&o) => {
+                    operator = o.clone();
+                    context.next();
+                },
+                _ => return Ok(lhs_node),
+            }
+        },
+        _ => return Ok(lhs_node),
+    }
+
+    let rhs_node = try!(binary_operator_helper(context, allowed_operators, build_subtree));
+    Ok(Expression::BinaryOp(
+        box lhs_node,
+        operator,
+        box rhs_node,
+    ))
+}
+
+fn multiplication(context: &mut Context) -> Result<Expression, String> {
+    static OPERATORS: [BinaryOp; 2] = [BinaryOp::Multiply, BinaryOp::Divide];
+    binary_operator_helper(context, &OPERATORS, unary_op)
+}
+
+fn addition(context: &mut Context) -> Result<Expression, String> {
+    static OPERATORS: [BinaryOp; 2] = [BinaryOp::Add, BinaryOp::Subtract];
+    binary_operator_helper(context, &OPERATORS, multiplication)
+}
+
+fn boolean_ops(context: &mut Context) -> Result<Expression, String> {
+    static OPERATORS: [BinaryOp; 2] = [BinaryOp::And, BinaryOp::Or];
+    binary_operator_helper(context, &OPERATORS, addition)
+}
+
+/**
  * Parse a single expression. Many things in C are expressions, including declarations and
  * assignments.
  */
-fn expression(context: &mut Context) -> Result<Expression, String> {
-    unary_op(context)
+pub fn expression(context: &mut Context) -> Result<Expression, String> {
+    boolean_ops(context)
 }
 
 /**
