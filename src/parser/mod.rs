@@ -1,3 +1,13 @@
+/*!
+ * Parser
+ * ======
+ *
+ * The Parser module has a handwritten lexer and a handwritten parser, built to transform C source
+ * code into `ast` structures for compilation or interpretation.
+ *
+ * These pieces should be very efficient because I am not using any generated code, but I have not
+ * done any benchmarking. The token-stream parser follows a recursive descent algorithm.
+ */
 
 use ast;
 
