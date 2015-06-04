@@ -22,14 +22,10 @@ fn main() {
     }
     let input_filename = matches.free[0].clone();
 
-    println!("reading from {:?}", input_filename);
-    println!("writing to   {:?}", output_filename);
-
     let path = Path::new(&input_filename);
     let file = source::File::from_disk(path).unwrap();
     let tokens = lexer::lex(&file.buf).unwrap();
-    println!("lexed {} tokens", tokens.len());
     let root_ast_node = parser::parse(tokens).unwrap();
-    println!("parsed a root node {:?}", root_ast_node);
+    println!("parsed an AST {:?}", root_ast_node);
 }
 
