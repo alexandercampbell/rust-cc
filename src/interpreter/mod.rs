@@ -2,7 +2,7 @@
  * Interpreter
  * ===========
  *
- * This module provides the functions for evaluating an ast::Program in memory. This has the
+ * This module provides the functions for evaluating an `ast::Program` in memory. This has the
  * advantage of being easier to write than a compiler, but it also has three large disadvantages:
  *
  * 1. Slow as fuck.
@@ -18,8 +18,10 @@
  */
 
 use ast;
+use checker;
 
 pub fn run_program(program: &ast::Program) -> Result<(), String> {
+    try!(checker::check_program(program));
     let _ = program;
     Ok(())
 }
