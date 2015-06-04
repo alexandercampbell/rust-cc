@@ -288,8 +288,18 @@ pub fn lex(s: &str) -> Result<Vec<Token>, String> {
                             // comment till the end of the line
                             while {
                                 pos += 1;
-                                let ch = chars[pos];
-                                ch != '\n'
+                                if pos >= chars.len() {
+                                    false
+                                } else {
+                                    let ch = chars[pos];
+                                    // backslash escapes newlines, even in comments.
+                                    if ch == '\\' {
+                                        pos += 1;
+                                        true
+                                    } else {
+                                        ch != '\n'
+                                    }
+                                }
                             }{};
                         },
 
@@ -343,6 +353,17 @@ mod test {
         assert_eq!(lex(r##""\n\\\"""##).unwrap(), vec![Token::String("\n\\\"".to_string())]);
         assert!(lex("\"hello ").is_err());
         assert!(lex("\"hello \\").is_err());
+    }
+
+    #[test]
+    fn one_line_comments() {
+        assert_eq!(lex("").unwrap(), vec![]);
+        assert_eq!(lex("//").unwrap(), vec![]);
+        assert_eq!(lex("// hello ").unwrap(), vec![]);
+        assert_eq!(lex("// hello \n\n").unwrap(), vec![]);
+        assert_eq!(lex(", // hello").unwrap(), vec![Token::Comma]);
+        assert_eq!(lex(", // hello \\\n goodbye").unwrap(), vec![Token::Comma]); // escaped newline
+        assert_eq!(lex(", // hello \n ;").unwrap(), vec![Token::Comma, Token::Semicolon]);
     }
 
     #[test]
