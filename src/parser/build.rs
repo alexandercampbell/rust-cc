@@ -12,8 +12,8 @@ use super::context::Context;
  * This function is named "atom" because I can't remember what the fundamental AST nodes are
  * called. Terminals, maybe?
  *
- * Either way, this function returns one of the fundamental units of the AST. No subcalls can be
- * made.
+ * Either way, this function returns one of the fundamental units of the AST. No subcalls are made
+ * in this function.
  */
 fn atom(context: &mut Context) -> Result<Expression, String> {
     match context.next() {
@@ -27,7 +27,7 @@ fn atom(context: &mut Context) -> Result<Expression, String> {
 }
 
 /**
- * Parse one of the unary operators: `+`, `-`, `*`, or `&`
+ * Parse one of the unary operators: `+`, `-`, `*`, or `&`.
  */
 fn unary_op(context: &mut Context) -> Result<Expression, String> {
     match context.peek() {
@@ -52,7 +52,8 @@ fn unary_op(context: &mut Context) -> Result<Expression, String> {
 }
 
 /**
- * Parse a single expression. Many things in C are expressions, including declarations.
+ * Parse a single expression. Many things in C are expressions, including declarations and
+ * assignments.
  */
 fn expression(context: &mut Context) -> Result<Expression, String> {
     unary_op(context)
@@ -113,8 +114,10 @@ fn statement_block(context: &mut Context) -> Result<Vec<Statement>, String> {
  *      void say_hello() {}
  *      const int number_of_processes() { return 5; }
  *
- * into the appropriate ast::Function structures. NOTE: This function assumes that the type
- * declaration has already been parsed, up to and including the left paren of the argument list.
+ * into the appropriate ast::Function structures.
+ *
+ * NOTE: This function assumes that the type declaration has already been parsed, up to and
+ * including the left paren of the argument list.
  */
 fn function_definition(context: &mut Context, signature: Declaration) -> Result<Function, String> {
     /*
