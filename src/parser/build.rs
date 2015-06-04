@@ -9,6 +9,24 @@ use ast::*;
 use super::context::Context;
 
 /**
+ * This function is named "atom" because I can't remember what the fundamental AST nodes are
+ * called. Terminals, maybe?
+ *
+ * Either way, this function returns one of the fundamental units of the AST. No subcalls can be
+ * made.
+ */
+fn atom(context: &mut Context) -> Result<Expression, String> {
+    match context.next() {
+        Some(Token::String(s)) => Ok(Expression::String(s)),
+        Some(Token::Character(ch)) => Ok(Expression::Character(ch)),
+        Some(Token::Number(n)) => Ok(Expression::Number(n)),
+        Some(Token::Identifier(id)) => Ok(Expression::Variable(id)),
+        Some(token) => Err(format!("expected atom token, got {:?}", token)),
+        None => Err("expected atom token".to_string()),
+    }
+}
+
+/**
  * Parse one of the unary operators: `+`, `-`, `*`, or `&`
  */
 fn unary_op(context: &mut Context) -> Result<Expression, String> {
@@ -21,15 +39,15 @@ fn unary_op(context: &mut Context) -> Result<Expression, String> {
                 Operator::Asterisk => UnaryOp::Dereference,
 
                 // not a unary op.
-                _ => return expression(context),
+                _ => return atom(context),
             };
 
             context.next(); // consume token
-            let rhs = try!(expression(context));
+            let rhs = try!(atom(context));
             Ok(Expression::UnaryOp(parser_op, box rhs))
         },
 
-        _ => expression(context),
+        _ => atom(context),
     }
 }
 

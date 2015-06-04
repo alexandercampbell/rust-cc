@@ -65,6 +65,11 @@ pub enum Expression {
     Parenthetical(Box<Expression>),
     Declaration(Declaration),
     Variable(String),
+
+    // these are literals
+    Number(Number),
+    String(String),
+    Character(char),
 }
 
 /**
