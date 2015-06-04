@@ -9,11 +9,82 @@ use ast::*;
 use super::context::Context;
 
 /**
+ * Parse one of the unary operators: `+`, `-`, `*`, or `&`
+ */
+fn unary_op(context: &mut Context) -> Result<Expression, String> {
+    match context.peek() {
+        Some(Token::Operator(lexer_op @ _)) => {
+            let parser_op = match lexer_op {
+                Operator::Add => UnaryOp::DontNegate,
+                Operator::Subtract => UnaryOp::Negate,
+                Operator::Reference => UnaryOp::Reference,
+                Operator::Asterisk => UnaryOp::Dereference,
+                _ => {
+                    // not a unary op.
+                    return expression(context);
+                },
+            };
+
+            context.next(); // consume token
+            let rhs = try!(expression(context));
+            Ok(Expression::UnaryOp(parser_op, box rhs))
+        },
+
+        _ => expression(context),
+    }
+}
+
+/**
+ * Parse a single expression.
+ */
+fn expression(context: &mut Context) -> Result<Expression, String> {
+    unary_op(context)
+}
+
+fn statement(context: &mut Context) -> Result<Statement, String> {
+    let expr = try!(expression(context));
+    match context.next() {
+        Some(Token::Semicolon) => (),
+        Some(token) => return Err(format!("unexpected token {:?} after expression", token)),
+        None => return Err(format!("expected semicolon after statement")),
+    }
+    Ok(Statement::Expression(expr))
+}
+
+/**
  * Parse a block of statements. This may be either a single statement or a series of statements
  * enclosed in curly braces `{}`.
+ *
+ * The astute among you may notice that this is very similar to argument parsing :)
  */
 fn statement_block(context: &mut Context) -> Result<Vec<Statement>, String> {
-    Ok(vec![])
+    match context.peek() {
+        Some(Token::LBrace) => {
+            let mut statements = vec![];
+            loop {
+                match context.peek() {
+                    Some(Token::RBrace) => {
+                        context.next(); // consume the closing paren
+                        return Ok(statements);
+                    },
+
+                    Some(_) => {
+                        let statement = try!(statement(context));
+                        statements.push(statement);
+                    },
+
+                    None => return Err("unterminated statement block".to_string()),
+                }
+            }
+        },
+
+        Some(_) => {
+            let statement = try!(statement(context));
+            Ok(vec![statement])
+        },
+
+        None => return Err("expected statement in statment block".to_string()),
+    }
 }
 
 /**

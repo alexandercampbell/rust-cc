@@ -19,13 +19,15 @@
 
 #[derive(Clone,Debug,PartialEq)]
 pub enum BinaryOp {
-    Add,
-    Subtract,
-    Multiply,
-    Divide,
+    // These are listed in order of precedence.
+    //
+    // The deepest level of the tree comes last.
+    Assign,
+    Add, Subtract,
+    Multiply, Divide,
+    Modulo,
     And,
     Or,
-    Modulo,
 }
 
 #[derive(Clone,Debug,PartialEq)]
@@ -33,18 +35,23 @@ pub enum UnaryOp {
     Reference,
     Dereference,
     Negate,
+    /// DontNegate represents a unary `+`. WTF does a unary `+` do?
+    DontNegate,
 }
 
 #[derive(Clone,Debug,PartialEq)]
 pub enum Expression {
-    Assignment(Box<Expression>, Box<Expression>),
-    BinaryOp(Box<Expression>, BinaryOp, Box<Expression>),
+    // These are listed in order of precedence
+    //
+    // The deepest level of the tree comes last.
     UnaryOp(UnaryOp, Box<Expression>),
-    Variable(String),
-    FunctionCall{name: String, args: Vec<Expression>},
+    BinaryOp(Box<Expression>, BinaryOp, Box<Expression>),
     MemberAccess{struct_name: Box<Expression>, field_name: String},
     ArrayIndex{array: Box<Expression>, index: Box<Expression>},
+    FunctionCall{name: String, args: Vec<Expression>},
+    Parenthetical(Box<Expression>),
     Declaration(Declaration),
+    Variable(String),
 }
 
 /**

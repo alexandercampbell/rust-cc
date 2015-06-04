@@ -43,15 +43,16 @@ pub enum Token {
  */
 #[derive(Clone,Debug,PartialEq)]
 pub enum Operator {
-    Add,      // +
-    Subtract, // -
     /// Asterisk can be either multiplication or dereference, depending on parse context.
-    Asterisk, // *
-    Divide,   // /
-    Modulo,   // %
-    And,      // &&
-    Or,       // ||
-    Assign,   // =
+    Asterisk,  // *
+    Add,       // +
+    Subtract,  // -
+    Divide,    // /
+    Modulo,    // %
+    And,       // &&
+    Or,        // ||
+    Assign,    // =
+    Reference, // &
 }
 
 impl Operator {

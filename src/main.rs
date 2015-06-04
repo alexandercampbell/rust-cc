@@ -1,3 +1,4 @@
+#![feature(box_syntax)]
 
 use std::env;
 use std::path::Path;
