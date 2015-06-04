@@ -12,12 +12,12 @@ mod build;
  * during this phase.
  */
 pub fn parse(tokens: Vec<Token>) -> Result<ast::Program, String> {
-    let mut context = context::Context::new(tokens);
+    let mut context = Context::new(tokens);
     build::program(&mut context)
 }
 
 /**
- * Parse a string directly by first lexing the tokens and then passing them to the parser.
+ * Parse a program string directly by first lexing the tokens and then passing them to the parser.
  */
 #[allow(unused)]
 pub fn parse_str(s: &str) -> Result<ast::Program, String> {
@@ -26,9 +26,30 @@ pub fn parse_str(s: &str) -> Result<ast::Program, String> {
     parse(tokens)
 }
 
+/**
+ * Parse a single C expression in an Expression AST. No evaluation or optimization is done during
+ * this phase.
+ */
+#[allow(unused)]
+pub fn parse_expr(tokens: Vec<Token>) -> Result<ast::Expression, String> {
+    let mut context = Context::new(tokens);
+    build::expression(&mut context)
+}
+
+/**
+ * Parse an expression string directly by first lexing the tokens and then passing them to the
+ * parser.
+ */
+#[allow(unused)]
+pub fn parse_expr_str(s: &str) -> Result<ast::Expression, String> {
+    use lexer::lex;
+    let tokens = try!(lex(s));
+    parse_expr(tokens)
+}
+
 #[cfg(test)]
 mod test {
-    use super::{parse,parse_str};
+    use super::*;
     use ast::*;
 
     #[test]
