@@ -4,19 +4,20 @@
 # differences in output are printed.
 #
 
+set -e
 set -o pipefail
 
-rm -r "test-output"
-mkdir -p "test-output"
+rm -r "target"
+mkdir -p "target"
 
-CLANG_EXEC="test-output/clang_executable.out"
-CLANG_OUT="test-output/clang_output.txt"
+CLANG_EXEC="target/clang_executable.out"
+CLANG_OUT="target/clang_output.txt"
 
 cargo build
 RUST_CC="../target/debug/rust-cc"
-RUST_CC_OUT="test-output/rust_cc_output.txt"
+RUST_CC_OUT="target/rust_cc_output.txt"
 
-for test_file in *.c ; do
+for test_file in files/*.c ; do
     echo "Comparing outputs for file '$test_file'"
     (set -x; clang -o $CLANG_EXEC "$test_file")
     $CLANG_EXEC > $CLANG_OUT
