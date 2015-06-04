@@ -1,5 +1,5 @@
 
-use lexer::Token;
+use parser::lexer::Token;
 
 /**
  * Context is a thin wrapper around Vec<Token> that has special support for some navigational

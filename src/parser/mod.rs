@@ -1,11 +1,12 @@
 
-use lexer::Token;
 use ast;
 
 mod context;
-use self::context::Context;
-
 mod build;
+pub mod lexer;
+
+use parser::context::Context;
+use parser::lexer::Token;
 
 /**
  * Parse a series of Tokens into a complete Program AST. No evaluation or optimization is done
@@ -21,7 +22,7 @@ pub fn parse(tokens: Vec<Token>) -> Result<ast::Program, String> {
  */
 #[allow(unused)]
 pub fn parse_str(s: &str) -> Result<ast::Program, String> {
-    use lexer::lex;
+    use parser::lexer::lex;
     let tokens = try!(lex(s));
     parse(tokens)
 }
@@ -46,7 +47,7 @@ pub fn parse_expr(tokens: Vec<Token>) -> Result<ast::Expression, String> {
  */
 #[allow(unused)]
 pub fn parse_expr_str(s: &str) -> Result<ast::Expression, String> {
-    use lexer::lex;
+    use parser::lexer::lex;
     let tokens = try!(lex(s));
     parse_expr(tokens)
 }

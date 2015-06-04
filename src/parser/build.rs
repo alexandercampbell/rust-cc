@@ -2,8 +2,8 @@
  * This module contains the functions that build ASTs from Tokens.
  */
 
-use lexer::Token;
-use lexer::Operator;
+use parser::lexer::Token;
+use parser::lexer::Operator;
 use ast::*;
 
 use super::context::Context;
