@@ -17,7 +17,7 @@
 int main() {
 	int a;
 	int b;
-	int file_descriptor = 0;
+	int file_descriptor = 1;
 
 	a = 10 + 2;
 	b = a * 10;

@@ -18,7 +18,7 @@ void count_shadower() {
 }
 
 int main() {
-	int file_descriptor = 0; // stdout
+	int file_descriptor = 1; // stdout
 
 	// initialize count
 	count = 0;
