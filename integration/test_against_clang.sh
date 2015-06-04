@@ -7,7 +7,7 @@
 set -e
 set -o pipefail
 
-rm -r "target"
+rm -rf "target"
 mkdir -p "target"
 
 CLANG_EXEC="target/clang_executable.out"
