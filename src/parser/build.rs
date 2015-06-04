@@ -64,11 +64,10 @@ fn expression(context: &mut Context) -> Result<Expression, String> {
 fn statement(context: &mut Context) -> Result<Statement, String> {
     let expr = try!(expression(context));
     match context.next() {
-        Some(Token::Semicolon) => (),
-        Some(token) => return Err(format!("unexpected token {:?} after expression", token)),
-        None => return Err(format!("expected semicolon after statement")),
+        Some(Token::Semicolon) => Ok(Statement::Expression(expr)),
+        Some(token) => Err(format!("unexpected token {:?} after expression", token)),
+        None => Err(format!("expected semicolon after statement")),
     }
-    Ok(Statement::Expression(expr))
 }
 
 /**
@@ -80,6 +79,7 @@ fn statement(context: &mut Context) -> Result<Statement, String> {
 fn statement_block(context: &mut Context) -> Result<Vec<Statement>, String> {
     match context.peek() {
         Some(Token::LBrace) => {
+            context.next();
             let mut statements = vec![];
             loop {
                 match context.peek() {

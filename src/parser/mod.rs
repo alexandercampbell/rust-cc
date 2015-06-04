@@ -139,15 +139,12 @@ mod test {
                         },
                     ],
                     statements: vec![
-                        Statement::Declaration(Declaration{
-                            name: "b".to_string(),
-                            _type: Type{
-                                base_name:      "int".to_string(),
-                                modifiers:      vec![],
-                                length:         None,
-                                pointer_levels: 0,
-                            },
-                        }),
+                        Statement::Expression(
+                            Expression::UnaryOp(
+                                UnaryOp::Negate,
+                                box Expression::Number(Number::Int(10)),
+                            )
+                        ),
                     ],
                 },
             ],
