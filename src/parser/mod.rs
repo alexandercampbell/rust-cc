@@ -16,11 +16,20 @@ pub fn parse(tokens: Vec<Token>) -> Result<ast::Program, String> {
     build::program(&mut context)
 }
 
+/**
+ * Parse a string directly by first lexing the tokens and then passing them to the parser.
+ */
+#[allow(unused)]
+pub fn parse_str(s: &str) -> Result<ast::Program, String> {
+    use lexer::lex;
+    let tokens = try!(lex(s));
+    parse(tokens)
+}
+
 #[cfg(test)]
 mod test {
-    use super::parse;
+    use super::{parse,parse_str};
     use ast::*;
-    use lexer::lex;
 
     #[test]
     fn empty_program() {
@@ -36,8 +45,7 @@ mod test {
      */
     #[test]
     fn constant_declaration() {
-        let tokens = lex("const int a;").unwrap();
-        let program = parse(tokens).unwrap();
+        let program = parse_str("const int a;").unwrap();
         assert_eq!(program, Program{
             globals: vec![
                 Declaration{
@@ -59,8 +67,7 @@ mod test {
      */
     #[test]
     fn pointer_pointer() {
-        let tokens = lex("unsigned short **pointer;").unwrap();
-        let program = parse(tokens).unwrap();
+        let program = parse_str("unsigned short **pointer;").unwrap();
         assert_eq!(program, Program{
             globals: vec![
                 Declaration{
@@ -79,11 +86,9 @@ mod test {
 
     #[test]
     fn void_function() {
-        let tokens = lex(r##"
+        let program = parse_str(r##"
                          void hello() {}
                          "##).unwrap();
-
-        let program = parse(tokens).unwrap();
 
         assert_eq!(program, Program{
             globals: vec![],
@@ -108,13 +113,11 @@ mod test {
      */
     #[test]
     fn function_definition() {
-        let tokens = lex(r##"
+        let program = parse_str(r##"
                          inline const void get_num_cores(int *a) {
                             -10;
                          }
                          "##).unwrap();
-
-        let program = parse(tokens).unwrap();
 
         assert_eq!(program, Program{
             globals: vec![],
