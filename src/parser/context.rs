@@ -54,6 +54,10 @@ impl Context {
         }
     }
 
+    pub fn is_exhausted(&self) -> bool {
+        self.pos >= self.tokens.len()
+    }
+
     #[allow(dead_code)]
     pub fn make_checkpoint(&mut self) -> Checkpoint {
         Checkpoint{saved_pos: self.pos}

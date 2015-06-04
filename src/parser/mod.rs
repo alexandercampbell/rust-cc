@@ -33,7 +33,11 @@ pub fn parse_str(s: &str) -> Result<ast::Program, String> {
 #[allow(unused)]
 pub fn parse_expr(tokens: Vec<Token>) -> Result<ast::Expression, String> {
     let mut context = Context::new(tokens);
-    build::expression(&mut context)
+    let expr = try!(build::expression(&mut context));
+    if !context.is_exhausted() {
+        return Err(format!("tokens remained after parsing expression"))
+    }
+    Ok(expr)
 }
 
 /**
