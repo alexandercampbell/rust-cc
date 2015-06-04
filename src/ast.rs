@@ -2,18 +2,21 @@
  * AST
  * ===
  *
- * This module describes the core datastructures of our compiler. The structures in this file can
- * be used to represent an entire C program.
+ * This module describes the core datastructures of our compiler. The structures in this file
+ * represent an entire C program.
  *
- * TODO:
+ * IN PROGRESS:
  *
  *  - Implement parser that can convert a stream of tokens into an `ast::Program`.
  *  - Implement interpreter that can run any Program. There are some quirks such as the C standard
  *    library which may be difficult to interop correctly.
+ *
+ * TODO:
+ *
  *  - Implement compiler that can compile a Program into either assembly or machine code. This will
  *    depend on platform and will likely be the hardest step.
- *  - Implement "reverser" that can deterministically output an `ast::Program` as valid C source
- *    code.
+ *  - Implement "reverser" that can deterministically output the valid C source code corresponding
+ *    to any `ast::Program`.
  *
  */
 
