@@ -1,4 +1,6 @@
 
+use ast;
+
 /**
  * Each of the variants in this enum represents one kind of C token.
  *
@@ -14,7 +16,7 @@ pub enum Token {
     Character(char),
 
     /// Number is also a literal pulled directly from source. Examples: `98` or `3.14`
-    Number(Number),
+    Number(ast::Number),
 
     /// Identifier could be a function call or variable, or even type declaration. Example: `main`
     /// or `float`.
@@ -75,19 +77,6 @@ impl Operator {
             _ => return None,
         })
     }
-}
-
-/**
- * Number describes the possible **literals** that can occur as a result of lexing.
- *
- * Presently, we don't try to support literals like "10L" or "10.0f".
- * TODO: Implement those.
- */
-// NOTE: changes to this enum require changes to `lex_number()`
-#[derive(Clone,Debug,PartialEq)]
-pub enum Number {
-    Int(i64),
-    Float(f64),
 }
 
 /**
@@ -155,13 +144,13 @@ fn lex_number(chars: &Vec<char>, pos: &mut usize) -> Result<Token, String> {
             Ok(f) => f,
             Err(_) => return Err(format!("bad floating point literal '{}'", literal)),
         };
-        Ok(Token::Number(Number::Float(f)))
+        Ok(Token::Number(ast::Number::Float(f)))
     } else {
         let i = match literal.parse::<i64>() {
             Ok(i) => i,
             Err(_) => return Err(format!("bad integer literal '{}'", literal)),
         };
-        Ok(Token::Number(Number::Int(i)))
+        Ok(Token::Number(ast::Number::Int(i)))
     }
 }
 
@@ -320,6 +309,7 @@ pub fn lex(s: &str) -> Result<Vec<Token>, String> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use ast;
 
     #[test]
     fn unexpected_character() {
@@ -329,10 +319,10 @@ mod test {
 
     #[test]
     fn numbers() {
-        assert_eq!(lex("123").unwrap(), vec![Token::Number(Number::Int(123))]);
-        assert_eq!(lex("12.3").unwrap(), vec![Token::Number(Number::Float(12.3))]);
-        assert_eq!(lex("012").unwrap(), vec![Token::Number(Number::Int(12))]);
-        assert_eq!(lex("0120}").unwrap(), vec![Token::Number(Number::Int(120)), Token::RBrace]);
+        assert_eq!(lex("123").unwrap(), vec![Token::Number(ast::Number::Int(123))]);
+        assert_eq!(lex("12.3").unwrap(), vec![Token::Number(ast::Number::Float(12.3))]);
+        assert_eq!(lex("012").unwrap(), vec![Token::Number(ast::Number::Int(12))]);
+        assert_eq!(lex("0120}").unwrap(), vec![Token::Number(ast::Number::Int(120)), Token::RBrace]);
     }
 
     #[test]
@@ -387,7 +377,7 @@ mod test {
                     Token::RParen,
                     Token::Semicolon,
                     Token::Identifier("return".to_string()),
-                    Token::Number(Number::Int(0)),
+                    Token::Number(ast::Number::Int(0)),
                     Token::Semicolon,
                 Token::RBrace,
             ]

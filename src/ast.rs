@@ -39,6 +39,19 @@ pub enum UnaryOp {
     DontNegate,
 }
 
+/**
+ * Number describes the possible **literals** that can occur as a result of lexing.
+ *
+ * Presently, we don't try to support literals like "10L" or "10.0f".
+ * TODO: Implement those.
+ */
+// NOTE: changes to this enum require changes to `lex_number()`
+#[derive(Clone,Debug,PartialEq)]
+pub enum Number {
+    Int(i64),
+    Float(f64),
+}
+
 #[derive(Clone,Debug,PartialEq)]
 pub enum Expression {
     // These are listed in order of precedence

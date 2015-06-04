@@ -19,10 +19,9 @@ fn unary_op(context: &mut Context) -> Result<Expression, String> {
                 Operator::Subtract => UnaryOp::Negate,
                 Operator::Reference => UnaryOp::Reference,
                 Operator::Asterisk => UnaryOp::Dereference,
-                _ => {
-                    // not a unary op.
-                    return expression(context);
-                },
+
+                // not a unary op.
+                _ => return expression(context),
             };
 
             context.next(); // consume token
@@ -35,12 +34,15 @@ fn unary_op(context: &mut Context) -> Result<Expression, String> {
 }
 
 /**
- * Parse a single expression.
+ * Parse a single expression. Many things in C are expressions, including declarations.
  */
 fn expression(context: &mut Context) -> Result<Expression, String> {
     unary_op(context)
 }
 
+/**
+ * Parse a statement.
+ */
 fn statement(context: &mut Context) -> Result<Statement, String> {
     let expr = try!(expression(context));
     match context.next() {
@@ -83,7 +85,7 @@ fn statement_block(context: &mut Context) -> Result<Vec<Statement>, String> {
             Ok(vec![statement])
         },
 
-        None => return Err("expected statement in statment block".to_string()),
+        None => return Err("expected statement in statement block".to_string()),
     }
 }
 

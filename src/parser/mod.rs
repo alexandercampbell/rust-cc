@@ -110,7 +110,7 @@ mod test {
     fn function_definition() {
         let tokens = lex(r##"
                          inline const void get_num_cores(int *a) {
-                            int b;
+                            -10;
                          }
                          "##).unwrap();
 
