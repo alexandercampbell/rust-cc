@@ -11,9 +11,7 @@ use parser::lexer::Token;
  * 1. Only move forward.
  * 2. Perform a similar operation on each Item.
  *
- * A Context is designed for careful pattern-matching and reversal to a set point when
- * pattern-matching fails. These "set points" are called Checkpoints. It's kinda dumb but at least
- * it's easy to understand and it works.
+ * Context needs to be able to `step_back` and `peek` ahead (yes, I'm aware of Peekable).
  */
 // intentionally non-clonable; it would be confusing as hell to have multiple contexts floating
 // around on the same vector of tokens
@@ -54,27 +52,9 @@ impl Context {
         }
     }
 
+    #[allow(dead_code)]
     pub fn is_exhausted(&self) -> bool {
         self.pos >= self.tokens.len()
-    }
-
-    #[allow(dead_code)]
-    pub fn make_checkpoint(&mut self) -> Checkpoint {
-        Checkpoint{saved_pos: self.pos}
-    }
-}
-
-/**
- * Checkpoint records a position in a Context and is capable of restoring to that position.
- */
-pub struct Checkpoint {
-    saved_pos: usize,
-}
-
-impl Checkpoint {
-    #[allow(dead_code)]
-    pub fn restore(self, context: &mut Context) {
-        context.pos = self.saved_pos;
     }
 }
 
