@@ -5,6 +5,7 @@ use std::path::Path;
 extern crate getopts;
 
 mod ast;
+mod interpreter;
 mod lexer;
 mod parser;
 mod source;
