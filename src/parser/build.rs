@@ -296,7 +296,7 @@ fn function_definition(context: &mut Context, signature: Declaration) -> Result<
  *
  * into ast::Declaration structs. The rule for this parse looks something like
  *
- *      ident+ (asterisk+ ident)? ((comma asterisk* ident)*|(equals <expression>)?)
+ *      ident+ (asterisk+ ident)? ((comma asterisk* ident)*)
  *
  * A handcrafted parser may not be the most understandable way to build this construct :)
  *
