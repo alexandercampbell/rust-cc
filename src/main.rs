@@ -8,6 +8,7 @@ mod checker;
 mod interpreter;
 mod parser;
 mod source;
+mod util;
 
 #[allow(dead_code)] // This shouldn't be necessary, but otherwise `cargo test` complains.
 fn main() {
