@@ -79,7 +79,7 @@ pub enum Expression {
  * Declaration is a complete variable declaration. A Declaration may represent such complicated
  * statements such as:
  *
- * ```
+ * ```c
  * int **a[12]
  * ```
  *

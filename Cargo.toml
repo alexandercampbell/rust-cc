@@ -1,4 +1,14 @@
+
 [package]
 name = "rust-cc"
 version = "0.1.0"
 authors = ["Alexander Campbell <alexanderhcampbell@gmail.com>"]
+
+[lib]
+name = "cc"
+path = "src/lib.rs"
+
+[[bin]]
+name = "rust-cc"
+path = "src/main.rs"
+

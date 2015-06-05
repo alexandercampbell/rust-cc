@@ -14,12 +14,14 @@ impl<T: Clone> Iterator for StepbackIterator<T> {
     type Item = T;
 
     /**
-     * StepbackIterator will continue to advance its index every time you call this function, even
+     * StepbackIterator will continue to advance its index every time you call `next()`, even
      * beyond the end of the array. This means that `step_back()` will always behave like you
      * expect.
      *
      * ```
-     * let s = StepbackIterator::new(vec![1, 2]);
+     * use cc::util::StepbackIterator;
+     *
+     * let mut s = StepbackIterator::new(vec![1, 2]);
      * s.next(); // returns 1
      * s.next(); // returns 2
      * s.next(); // returns None
@@ -30,7 +32,6 @@ impl<T: Clone> Iterator for StepbackIterator<T> {
      * // index is still pointing to `len() + 1`.
      * s.next();
      * ```
-     *
      */
     fn next(&mut self) -> Option<Self::Item> {
         if self.pos >= self.items.len() {

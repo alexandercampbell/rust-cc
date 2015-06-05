@@ -67,11 +67,7 @@ pub fn number(context: &mut Context) -> Result<Token, String> {
 }
 
 /**
- * Lex as much of an identifer as possible from `chars`. Identifiers match the following regex:
- *
- * ```
- * [A-Za-z_][A-Za-z0-9_]*
- * ```
+ * Lex as much of an identifer as possible from `chars`. Identifiers match the following regex: `[A-Za-z_][A-Za-z0-9_]*`
  *
  * This function assumes that the first character class has already been matched.
  */

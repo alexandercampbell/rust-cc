@@ -229,8 +229,10 @@ fn statement_block(context: &mut Context) -> Result<Vec<Statement>, String> {
 /**
  * Parse function definitions such as
  *
+ * ```c
  *      void say_hello() {}
  *      const int number_of_processes() { return 5; }
+ * ```
  *
  * into the appropriate ast::Function structures.
  *
@@ -288,15 +290,19 @@ fn function_definition(context: &mut Context, signature: Declaration) -> Result<
 /**
  * Parse declarations such as
  *
+ * ```c
  *      const int b
  *      int *a
  *      int c[10]
  *      unsigned char d, e
  *      int f
+ * ```
  *
  * into ast::Declaration structs. The rule for this parse looks something like
  *
+ * ```c
  *      ident+ (asterisk+ ident)? ((comma asterisk* ident)*)
+ * ```
  *
  * A handcrafted parser may not be the most understandable way to build this construct :)
  *
@@ -410,14 +416,14 @@ fn declaration(context: &mut Context) -> Result<Declaration, String> {
 /**
  * Look for function declarations of the form
  *
- * ```
+ * ```c
  * void do_something(int a) {}
  * void do_something(int a); // forward declaration
  * ```
  *
  * And variable declarations of the form
  *
- * ```
+ * ```c
  * int a;
  * ```
  */
