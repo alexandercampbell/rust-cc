@@ -36,6 +36,7 @@ pub fn run_program(program: &ast::Program) -> Result<(), String> {
         Some(f) => f,
         None => return Err("no main function found in program".to_string()),
     };
+    let _ = main;
     Ok(())
 }
 
