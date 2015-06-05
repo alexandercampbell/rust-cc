@@ -20,9 +20,22 @@
 use ast;
 use checker;
 
+/**
+ * Return the main() function from the program, if it exists.
+ */
+fn get_main(program: &ast::Program) -> Option<&ast::Function> {
+    program.functions.iter().find(|&f| f.name == "main")
+}
+
+/**
+ * Interpret the program, starting at main().
+ */
 pub fn run_program(program: &ast::Program) -> Result<(), String> {
     try!(checker::check_program(program));
-    let _ = program;
+    let main = match get_main(program) {
+        Some(f) => f,
+        None => return Err("no main function found in program".to_string()),
+    };
     Ok(())
 }
 
