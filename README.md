@@ -1,6 +1,6 @@
 
-rust-cc
--------
+rust-cc \[in-progress\]
+-----------------------
 
 rust-cc will be a C compiler written in Rust.
 
