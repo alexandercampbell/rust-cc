@@ -1,37 +1,27 @@
 
 use ast;
 use parser::lexer::Token;
-
-/**
- * Retrieve the next `char` after `pos` if possible.
- */
-pub fn peek_at_next_char(chars: &Vec<char>, pos: usize) -> Option<char> {
-    let next_pos = pos + 1;
-    if next_pos >= chars.len() {
-        None
-    } else {
-        Some(chars[next_pos])
-    }
-}
+use parser::lexer::Context;
 
 /**
  * Extract as much of a number as possible from `chars`, starting at index `pos`. The `pos`
  * parameter will be mutated to point to the first token of the next character after the number.
  *
- * For example, if you have a string like this: " 12.3abc" and you start at `pos=2`, this function
- * will return `2.3` as a token and `pos` will be mutated to point to `a`.
+ * For example, if you have a string like this: `" 12.3abc"` and you start at `pos=2`, this
+ * function will return `2.3` as a token and `pos` will be mutated to point to `a`.
  */
-pub fn number(chars: &Vec<char>, pos: &mut usize) -> Result<Token, String> {
-    let first_ch = chars[*pos];
+pub fn number(context: &mut Context) -> Result<Token, String> {
+    let first_ch = context.next().unwrap();
     let mut seen_decimal = first_ch == '.';
     let mut literal = String::new();
     literal.push(first_ch);
 
     loop {
-        *pos += 1;
-        if *pos >= chars.len() { break; }
+        let ch = match context.next() {
+            Some(ch) => ch,
+            None => break,
+        };
 
-        let ch = chars[*pos];
         match ch {
             '0'...'9' => (),
             '.' => {
@@ -46,9 +36,8 @@ pub fn number(chars: &Vec<char>, pos: &mut usize) -> Result<Token, String> {
             // TODO: handle trailing type specifiers like 10f and 50L (which mean float and long
             // respectively).
             _ => {
-                // `chars[pos]` is part of another token. Back up `pos` so we don't refer to that
-                // part of the string.
-                *pos -= 1;
+                // The current character is part of another token. Back up so we don't consume it.
+                context.step_back();
                 break;
             },
         }
@@ -86,26 +75,27 @@ pub fn number(chars: &Vec<char>, pos: &mut usize) -> Result<Token, String> {
  *
  * This function assumes that the first character class has already been matched.
  */
-pub fn identifier(chars: &Vec<char>, pos: &mut usize) -> String {
+pub fn identifier(context: &mut Context) -> String {
     let mut literal = String::new();
-    literal.push(chars[*pos]);
+
+    // The current character in the iterator we know is good (in the character class [A-Za-z_])
+    literal.push(context.next().unwrap());
 
     loop {
-        *pos += 1;
-        if *pos >= chars.len() { break; }
+        let ch = match context.next() {
+            Some(ch) => ch,
+            None => break,
+        };
 
-        let ch = chars[*pos];
         match ch {
             'A'...'Z'|'a'...'z'|'0'...'9'|'_' => literal.push(ch),
             _ => {
-                // `chars[pos]` is part of another token. Back up `pos` so we don't refer to that
-                // part of the string.
-                *pos -= 1;
+                // The character is part of another token. Back up so we don't consume it.
+                context.step_back();
                 break;
             }
         };
     }
-
     return literal;
 }
 
@@ -114,21 +104,20 @@ pub fn identifier(chars: &Vec<char>, pos: &mut usize) -> String {
  *
  * NOTE: This function assumes that the first quote has been seen already.
  */
-pub fn string(chars: &Vec<char>, pos: &mut usize) -> Result<String, String> {
+pub fn string(context: &mut Context) -> Result<String, String> {
     let mut literal = String::new();
 
     loop {
-        *pos += 1;
-        if *pos >= chars.len() {
-            return Err(format!("unterminated string literal {:?}", literal));
-        }
+        let ch = match context.next() {
+            Some(ch) => ch,
+            None => return Err(format!("unterminated string literal {:?}", literal)),
+        };
 
-        let ch = chars[*pos];
         match ch {
             '"' => return Ok(literal),
             '\\' => {
                 // the next character must be an escape sequence
-                match peek_at_next_char(chars, *pos) {
+                match context.peek() {
                     Some('"') => literal.push('"'),
                     Some('n') => literal.push('\n'),
                     Some('r') => literal.push('\r'),
@@ -136,7 +125,7 @@ pub fn string(chars: &Vec<char>, pos: &mut usize) -> Result<String, String> {
                     None => return Err(format!("EOF while scanning string literal {:?}", literal)),
                     Some(c) => return Err(format!("Unrecognized escape sequence \\{}", c)),
                 };
-                *pos += 1;
+                context.next();
             },
             _ => literal.push(ch),
         }

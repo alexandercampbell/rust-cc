@@ -1,11 +1,15 @@
 
-mod lex;
 use ast;
+use util;
+
+mod lex;
+
+pub type Context = util::StepbackIterator<char>;
 
 /**
  * Each of the variants in this enum represents one kind of C token.
  *
- * TODO: add positional information to these tokens if the memory tradeoff is worth it.
+ * This enum contains no positional data.
  */
 #[derive(Clone,Debug,PartialEq)]
 pub enum Token {
@@ -91,7 +95,7 @@ impl Operator {
  */
 pub fn lex_str(s: &str) -> Result<Vec<Token>, String> {
     let chars:Vec<char> = s.chars().collect();
-    let mut pos = 0usize;
+    let mut context = Context::new(chars);
     let mut tokens = vec![];
 
     // use an anonymous scope here so `push_tok` is dropped before we `Ok(tokens)`. Why? Because
@@ -107,15 +111,23 @@ pub fn lex_str(s: &str) -> Result<Vec<Token>, String> {
         };
 
         // iterate through chars and process tokens as we go
-        while pos < chars.len() {
-            let ch = chars[pos];
+        loop {
+            let ch = match context.next() {
+                Some(ch) => ch,
+                None => break,
+            };
+
             match ch {
                 '0'...'9'|'.' => {
-                    let number = try!(lex::number(&chars, &mut pos));
+                    context.step_back();
+                    let number = try!(lex::number(&mut context));
                     push_tok(number);
                 },
-                'a'...'z'|'A'...'Z'|'_' => push_tok(Token::Identifier(lex::identifier(&chars, &mut pos))),
-                '"' => push_tok(Token::String(try!(lex::string(&chars, &mut pos)))),
+                'a'...'z'|'A'...'Z'|'_' => {
+                    context.step_back();
+                    push_tok(Token::Identifier(lex::identifier(&mut context)));
+                }
+                '"' => push_tok(Token::String(try!(lex::string(&mut context)))),
                 '\'' => (), // TODO: lex character
 
                 // single-character tokens
@@ -139,28 +151,20 @@ pub fn lex_str(s: &str) -> Result<Vec<Token>, String> {
 
                 // comments are handled in this block
                 '/' => {
-                    match lex::peek_at_next_char(&chars, pos) {
+                    match context.peek() {
                         Some('*') => {
                             // TODO: handle comment until a `*/` symbol
                         },
 
-                        Some('/') => {
+                        Some('/') => loop {
                             // comment till the end of the line
-                            while {
-                                pos += 1;
-                                if pos >= chars.len() {
-                                    false
-                                } else {
-                                    let ch = chars[pos];
-                                    // backslash escapes newlines, even in comments.
-                                    if ch == '\\' {
-                                        pos += 1;
-                                        true
-                                    } else {
-                                        ch != '\n'
-                                    }
-                                }
-                            }{};
+                            match context.next() {
+                                // Backslash escapes newlines, even in comments. We know we can
+                                // safely skip the next character no matter what it is.
+                                Some('\\') => { context.next(); },
+                                Some('\n') | None => break,
+                                _ => (),
+                            }
                         },
 
                         _ => push_tok(Token::Operator(Operator::Divide)),
@@ -169,7 +173,6 @@ pub fn lex_str(s: &str) -> Result<Vec<Token>, String> {
 
                 _ => return Err(format!("unexpected character '{}'", ch)),
             }
-            pos += 1;
         }
     }
 
