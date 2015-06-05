@@ -1,4 +1,5 @@
 
+mod lex;
 use ast;
 
 /**
@@ -80,147 +81,6 @@ impl Operator {
 }
 
 /**
- * Retrieve the next `char` after `pos` if possible.
- */
-fn peek_at_next_char(chars: &Vec<char>, pos: usize) -> Option<char> {
-    let next_pos = pos + 1;
-    if next_pos >= chars.len() {
-        None
-    } else {
-        Some(chars[next_pos])
-    }
-}
-
-/**
- * Extract as much of a number as possible from `chars`, starting at index `pos`. The `pos`
- * parameter will be mutated to point to the first token of the next character after the number.
- *
- * For example, if you have a string like this: " 12.3abc" and you start at `pos=2`, this function
- * will return `2.3` as a token and `pos` will be mutated to point to `a`.
- */
-fn lex_number(chars: &Vec<char>, pos: &mut usize) -> Result<Token, String> {
-    let first_ch = chars[*pos];
-    let mut seen_decimal = first_ch == '.';
-    let mut literal = String::new();
-    literal.push(first_ch);
-
-    loop {
-        *pos += 1;
-        if *pos >= chars.len() { break; }
-
-        let ch = chars[*pos];
-        match ch {
-            '0'...'9' => (),
-            '.' => {
-                // If `seen_decimal` is already true, that means we've already seen a '.' character
-                // in this literal.
-                if seen_decimal {
-                    return Err(format!("two decimals in numeric literal '{}.'", literal));
-                };
-                seen_decimal = true;
-            }
-
-            // TODO: handle trailing type specifiers like 10f and 50L (which mean float and long
-            // respectively).
-            _ => {
-                // `chars[pos]` is part of another token. Back up `pos` so we don't refer to that
-                // part of the string.
-                *pos -= 1;
-                break;
-            },
-        }
-        literal.push(ch);
-    };
-
-    // We now have the literal contained in `literal`. Parse it into an instance of the Number
-    // enum. Our variable `seen_decimal` tells us whether the number should be parsed as an int64
-    // or a float64.
-    if seen_decimal {
-        if literal == "." {
-            return Ok(Token::Period);
-        }
-
-        let f = match literal.parse::<f64>() {
-            Ok(f) => f,
-            Err(_) => return Err(format!("bad floating point literal '{}'", literal)),
-        };
-        Ok(Token::Number(ast::Number::Float(f)))
-    } else {
-        let i = match literal.parse::<i64>() {
-            Ok(i) => i,
-            Err(_) => return Err(format!("bad integer literal '{}'", literal)),
-        };
-        Ok(Token::Number(ast::Number::Int(i)))
-    }
-}
-
-/**
- * Lex as much of an identifer as possible from `chars`. Identifiers match the following regex:
- *
- * ```
- * [A-Za-z_][A-Za-z0-9_]*
- * ```
- *
- * This function assumes that the first character class has already been matched.
- */
-fn lex_identifier(chars: &Vec<char>, pos: &mut usize) -> String {
-    let mut literal = String::new();
-    literal.push(chars[*pos]);
-
-    loop {
-        *pos += 1;
-        if *pos >= chars.len() { break; }
-
-        let ch = chars[*pos];
-        match ch {
-            'A'...'Z'|'a'...'z'|'0'...'9'|'_' => literal.push(ch),
-            _ => {
-                // `chars[pos]` is part of another token. Back up `pos` so we don't refer to that
-                // part of the string.
-                *pos -= 1;
-                break;
-            }
-        };
-    }
-
-    return literal;
-}
-
-/**
- * Lex a string from `chars` starting at `pos`.
- *
- * NOTE: This function assumes that the first quote has been seen already.
- */
-fn lex_string(chars: &Vec<char>, pos: &mut usize) -> Result<String, String> {
-    let mut literal = String::new();
-
-    loop {
-        *pos += 1;
-        if *pos >= chars.len() {
-            return Err(format!("unterminated string literal {:?}", literal));
-        }
-
-        let ch = chars[*pos];
-        match ch {
-            '"' => return Ok(literal),
-            '\\' => {
-                // the next character must be an escape sequence
-                match peek_at_next_char(chars, *pos) {
-                    Some('"') => literal.push('"'),
-                    Some('n') => literal.push('\n'),
-                    Some('r') => literal.push('\r'),
-                    Some('\\') => literal.push('\\'),
-                    None => return Err(format!("EOF while scanning string literal {:?}", literal)),
-                    Some(c) => return Err(format!("Unrecognized escape sequence \\{}", c)),
-                };
-                *pos += 1;
-            },
-            _ => literal.push(ch),
-        }
-    }
-}
-
-/**
  * Convert from a str to a vector of Tokens. Handle comments correctly as part of lexing.
  *
  * For example, the string `", ( {"` would be transformed into the Vector of Tokens
@@ -229,7 +89,7 @@ fn lex_string(chars: &Vec<char>, pos: &mut usize) -> Result<String, String> {
  * The result of this function is just a sequence of Token without hierarchy. These Tokens should
  * be parsed to build a walkable AST.
  */
-pub fn lex(s: &str) -> Result<Vec<Token>, String> {
+pub fn lex_str(s: &str) -> Result<Vec<Token>, String> {
     let chars:Vec<char> = s.chars().collect();
     let mut pos = 0usize;
     let mut tokens = vec![];
@@ -251,11 +111,11 @@ pub fn lex(s: &str) -> Result<Vec<Token>, String> {
             let ch = chars[pos];
             match ch {
                 '0'...'9'|'.' => {
-                    let number = try!(lex_number(&chars, &mut pos));
+                    let number = try!(lex::number(&chars, &mut pos));
                     push_tok(number);
                 },
-                'a'...'z'|'A'...'Z'|'_' => push_tok(Token::Identifier(lex_identifier(&chars, &mut pos))),
-                '"' => push_tok(Token::String(try!(lex_string(&chars, &mut pos)))),
+                'a'...'z'|'A'...'Z'|'_' => push_tok(Token::Identifier(lex::identifier(&chars, &mut pos))),
+                '"' => push_tok(Token::String(try!(lex::string(&chars, &mut pos)))),
                 '\'' => (), // TODO: lex character
 
                 // single-character tokens
@@ -279,7 +139,7 @@ pub fn lex(s: &str) -> Result<Vec<Token>, String> {
 
                 // comments are handled in this block
                 '/' => {
-                    match peek_at_next_char(&chars, pos) {
+                    match lex::peek_at_next_char(&chars, pos) {
                         Some('*') => {
                             // TODO: handle comment until a `*/` symbol
                         },
@@ -323,21 +183,21 @@ mod test {
 
     #[test]
     fn unexpected_character() {
-        assert!(lex("$").is_err());
-        assert!(lex("@").is_err());
+        assert!(lex_str("$").is_err());
+        assert!(lex_str("@").is_err());
     }
 
     #[test]
     fn numbers() {
-        assert_eq!(lex("123").unwrap(), vec![Token::Number(ast::Number::Int(123))]);
-        assert_eq!(lex("12.3").unwrap(), vec![Token::Number(ast::Number::Float(12.3))]);
-        assert_eq!(lex("012").unwrap(), vec![Token::Number(ast::Number::Int(12))]);
-        assert_eq!(lex("0120}").unwrap(), vec![Token::Number(ast::Number::Int(120)), Token::RBrace]);
+        assert_eq!(lex_str("123").unwrap(), vec![Token::Number(ast::Number::Int(123))]);
+        assert_eq!(lex_str("12.3").unwrap(), vec![Token::Number(ast::Number::Float(12.3))]);
+        assert_eq!(lex_str("012").unwrap(), vec![Token::Number(ast::Number::Int(12))]);
+        assert_eq!(lex_str("0120}").unwrap(), vec![Token::Number(ast::Number::Int(120)), Token::RBrace]);
     }
 
     #[test]
     fn identifiers() {
-        assert_eq!(lex("int ident1, _ident2;").unwrap(),
+        assert_eq!(lex_str("int ident1, _ident2;").unwrap(),
             vec![
                 Token::Identifier("int".to_string()),
                 Token::Identifier("ident1".to_string()),
@@ -350,20 +210,20 @@ mod test {
 
     #[test]
     fn strings() {
-        assert_eq!(lex(r##""\n\\\"""##).unwrap(), vec![Token::String("\n\\\"".to_string())]);
-        assert!(lex("\"hello ").is_err());
-        assert!(lex("\"hello \\").is_err());
+        assert_eq!(lex_str(r##""\n\\\"""##).unwrap(), vec![Token::String("\n\\\"".to_string())]);
+        assert!(lex_str("\"hello ").is_err());
+        assert!(lex_str("\"hello \\").is_err());
     }
 
     #[test]
     fn one_line_comments() {
-        assert_eq!(lex("").unwrap(), vec![]);
-        assert_eq!(lex("//").unwrap(), vec![]);
-        assert_eq!(lex("// hello ").unwrap(), vec![]);
-        assert_eq!(lex("// hello \n\n").unwrap(), vec![]);
-        assert_eq!(lex(", // hello").unwrap(), vec![Token::Comma]);
-        assert_eq!(lex(", // hello \\\n goodbye").unwrap(), vec![Token::Comma]); // escaped newline
-        assert_eq!(lex(", // hello \n ;").unwrap(), vec![Token::Comma, Token::Semicolon]);
+        assert_eq!(lex_str("").unwrap(), vec![]);
+        assert_eq!(lex_str("//").unwrap(), vec![]);
+        assert_eq!(lex_str("// hello ").unwrap(), vec![]);
+        assert_eq!(lex_str("// hello \n\n").unwrap(), vec![]);
+        assert_eq!(lex_str(", // hello").unwrap(), vec![Token::Comma]);
+        assert_eq!(lex_str(", // hello \\\n goodbye").unwrap(), vec![Token::Comma]); // escaped newline
+        assert_eq!(lex_str(", // hello \n ;").unwrap(), vec![Token::Comma, Token::Semicolon]);
     }
 
     #[test]
@@ -376,7 +236,7 @@ mod test {
                 }
             "##;
 
-        let tokens = lex(simple_program).unwrap();
+        let tokens = lex_str(simple_program).unwrap();
         assert_eq!(tokens,
             vec![
                 Token::Identifier("int".to_string()),

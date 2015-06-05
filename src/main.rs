@@ -28,7 +28,7 @@ fn main() {
 
     let path = Path::new(&input_filename);
     let file = source::File::from_disk(path).unwrap();
-    let tokens = parser::lexer::lex(&file.buf).unwrap();
+    let tokens = parser::lexer::lex_str(&file.buf).unwrap();
     let root_ast_node = parser::parse(tokens).unwrap();
     println!("parsed an AST {:?}", root_ast_node);
 
