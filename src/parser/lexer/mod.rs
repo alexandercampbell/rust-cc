@@ -2,7 +2,7 @@
 use ast;
 use util;
 
-mod lex;
+mod lex_subroutines;
 
 pub type Context = util::StepbackIterator<char>;
 
@@ -93,7 +93,7 @@ impl Operator {
  * The result of this function is just a sequence of Token without hierarchy. These Tokens should
  * be parsed to build a walkable AST.
  */
-pub fn lex_str(s: &str) -> Result<Vec<Token>, String> {
+pub fn lex(s: &str) -> Result<Vec<Token>, String> {
     let chars:Vec<char> = s.chars().collect();
     let mut context = Context::new(chars);
     let mut tokens = vec![];
@@ -120,14 +120,14 @@ pub fn lex_str(s: &str) -> Result<Vec<Token>, String> {
             match ch {
                 '0'...'9'|'.' => {
                     context.step_back();
-                    let number = try!(lex::number(&mut context));
+                    let number = try!(lex_subroutines::number(&mut context));
                     push_tok(number);
                 },
                 'a'...'z'|'A'...'Z'|'_' => {
                     context.step_back();
-                    push_tok(Token::Identifier(lex::identifier(&mut context)));
+                    push_tok(Token::Identifier(lex_subroutines::identifier(&mut context)));
                 }
-                '"' => push_tok(Token::String(try!(lex::string(&mut context)))),
+                '"' => push_tok(Token::String(try!(lex_subroutines::string(&mut context)))),
                 '\'' => (), // TODO: lex character
 
                 // single-character tokens
@@ -186,21 +186,21 @@ mod test {
 
     #[test]
     fn unexpected_character() {
-        assert!(lex_str("$").is_err());
-        assert!(lex_str("@").is_err());
+        assert!(lex("$").is_err());
+        assert!(lex("@").is_err());
     }
 
     #[test]
     fn numbers() {
-        assert_eq!(lex_str("123").unwrap(), vec![Token::Number(ast::Number::Int(123))]);
-        assert_eq!(lex_str("12.3").unwrap(), vec![Token::Number(ast::Number::Float(12.3))]);
-        assert_eq!(lex_str("012").unwrap(), vec![Token::Number(ast::Number::Int(12))]);
-        assert_eq!(lex_str("0120}").unwrap(), vec![Token::Number(ast::Number::Int(120)), Token::RBrace]);
+        assert_eq!(lex("123").unwrap(), vec![Token::Number(ast::Number::Int(123))]);
+        assert_eq!(lex("12.3").unwrap(), vec![Token::Number(ast::Number::Float(12.3))]);
+        assert_eq!(lex("012").unwrap(), vec![Token::Number(ast::Number::Int(12))]);
+        assert_eq!(lex("0120}").unwrap(), vec![Token::Number(ast::Number::Int(120)), Token::RBrace]);
     }
 
     #[test]
     fn identifiers() {
-        assert_eq!(lex_str("int ident1, _ident2;").unwrap(),
+        assert_eq!(lex("int ident1, _ident2;").unwrap(),
             vec![
                 Token::Identifier("int".to_string()),
                 Token::Identifier("ident1".to_string()),
@@ -213,20 +213,20 @@ mod test {
 
     #[test]
     fn strings() {
-        assert_eq!(lex_str(r##""\n\\\"""##).unwrap(), vec![Token::String("\n\\\"".to_string())]);
-        assert!(lex_str("\"hello ").is_err());
-        assert!(lex_str("\"hello \\").is_err());
+        assert_eq!(lex(r##""\n\\\"""##).unwrap(), vec![Token::String("\n\\\"".to_string())]);
+        assert!(lex("\"hello ").is_err());
+        assert!(lex("\"hello \\").is_err());
     }
 
     #[test]
     fn one_line_comments() {
-        assert_eq!(lex_str("").unwrap(), vec![]);
-        assert_eq!(lex_str("//").unwrap(), vec![]);
-        assert_eq!(lex_str("// hello ").unwrap(), vec![]);
-        assert_eq!(lex_str("// hello \n\n").unwrap(), vec![]);
-        assert_eq!(lex_str(", // hello").unwrap(), vec![Token::Comma]);
-        assert_eq!(lex_str(", // hello \\\n goodbye").unwrap(), vec![Token::Comma]); // escaped newline
-        assert_eq!(lex_str(", // hello \n ;").unwrap(), vec![Token::Comma, Token::Semicolon]);
+        assert_eq!(lex("").unwrap(), vec![]);
+        assert_eq!(lex("//").unwrap(), vec![]);
+        assert_eq!(lex("// hello ").unwrap(), vec![]);
+        assert_eq!(lex("// hello \n\n").unwrap(), vec![]);
+        assert_eq!(lex(", // hello").unwrap(), vec![Token::Comma]);
+        assert_eq!(lex(", // hello \\\n goodbye").unwrap(), vec![Token::Comma]); // escaped newline
+        assert_eq!(lex(", // hello \n ;").unwrap(), vec![Token::Comma, Token::Semicolon]);
     }
 
     #[test]
@@ -239,7 +239,7 @@ mod test {
                 }
             "##;
 
-        let tokens = lex_str(simple_program).unwrap();
+        let tokens = lex(simple_program).unwrap();
         assert_eq!(tokens,
             vec![
                 Token::Identifier("int".to_string()),

@@ -32,7 +32,7 @@ pub fn parse(tokens: Vec<Token>) -> Result<ast::Program, String> {
  */
 #[allow(unused)]
 pub fn parse_str(s: &str) -> Result<ast::Program, String> {
-    let tokens = try!(lexer::lex_str(s));
+    let tokens = try!(lexer::lex(s));
     parse(tokens)
 }
 
@@ -56,7 +56,7 @@ pub fn parse_expr(tokens: Vec<Token>) -> Result<ast::Expression, String> {
  */
 #[allow(unused)]
 pub fn parse_expr_str(s: &str) -> Result<ast::Expression, String> {
-    let tokens = try!(lexer::lex_str(s));
+    let tokens = try!(lexer::lex(s));
     parse_expr(tokens)
 }
 
